@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medical Form</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+            margin: 16px;
+            transition: background-color .2s ease;
+        }
+
+        body.no-exam {
+            background: #e0f2fe;
+        }
+
+        /* ฟ้าอ่อนเมื่อ “ไม่ตรวจร่างกายไม่รอฟัง” */
+        .cbc-legend {
+            color: rgba(255, 115, 0, .9);
+        }
+
+        .highlight-legend {
+            background: yellow;
+            color: rgb(255, 0, 179);
+            padding: 0 10px;
+            border-radius: 6px;
+        }
+
+        fieldset {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            max-width: 980px;
+        }
+
+        input[type="number"] {
+            width: 40px;
+        }
+
+        .wbc-sub {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 10px;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-family: system-ui, sans-serif;">
+        <div style="font-weight: 600; font-size: 0.9rem; color: #0369a1;">
+            📋 แบบฟอร์มตรวจสุขภาพประจำปี (Annual Medical Examination Form v3.3)
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <a href="all.html" style="text-decoration: none; background: #0284c7; color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                🏠 กลับหน้าหลักตรวจสุขภาพ (all.html)
+            </a>
+            <a href="index.html" style="text-decoration: none; background: #f1f5f9; color: #334155; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; border: 1px solid #cbd5e1;">
+                Portfolio
+            </a>
+        </div>
+    </div>
+    <h1>Medical Form</h1>
+
+    <form id="medicalForm">
+
+        <div>
+            <button type="button" onclick="clearForm()">Clear All</button>
+            <input type="checkbox" id="No" name="No" value="ไม่ตรวจร่างกายไม่รอฟัง หลัง Medical Form">
+            <label for="No">ไม่ตรวจร่างกายไม่รอฟัง</label>
+            <button type="button" onclick="copyText('textExplain')">Copy Text</button>
+            <button type="button" onclick="copyText('textShortNote')">Copy Short Note</button>
+            <!-- ปุ่มเพิ่มเพื่อเปิด “หน้าสรุปผล (กราฟ)” -->
+            <button type="button" onclick="openSummary()">สรุปผล (กราฟ)</button>
+        </div>
+
+        <fieldset>
+            <legend class="cbc-legend">CBC</legend>
+
+            <label for="RBC">RBC&nbsp;</label>
+            <input type="checkbox" id="anemia" name="anemia" value="สงสัยภาวะเลือดจาง (anemia)">
+            <label for="anemia">anemia</label>
+            <input type="number" id="hb_input" name="hb_input" min="0" step="any"
+                style="width:50px; margin-left:10px;" placeholder="Hb">
+            <input type="number" id="hct_input" name="hct_input" min="0" step="any"
+                style="width:50px; margin-left:10px;" placeholder="Hct"><br>
+
+            <label for="wbc">WBC</label>
+            <input type="checkbox" id="high_wbc" name="high_wbc" value="เม็ดเลือดขาวเกินเกณฑ์">
+            <label for="high_wbc">high</label>
+            <input type="checkbox" id="low_wbc" name="low_wbc" value="เม็ดเลือดขาวต่ำกว่าเกณฑ์">
+            <label for="low_wbc">low</label>
+            <input type="text" id="wbc_input" name="wbc_input" style="width:50px; margin-left:5px;" placeholder="WBC">
+            <!-- เพิ่ม N / L / E ตามที่ขอ -->
+            <span class="wbc-sub" aria-label="WBC differentials">
+                <input type="checkbox" id="wbc_N" name="wbc_N" value="นิวโตรฟิล"><label for="wbc_N">N</label>
+                <input type="checkbox" id="wbc_L" name="wbc_L" value="ลิมโฟไซด์"><label for="wbc_L">L</label>
+                <input type="checkbox" id="wbc_E" name="wbc_E" value="อีโอสิโนฟิล"><label for="wbc_E">E</label>
+            </span>
+            <br>
+
+            <label for="plt">PLT&nbsp;&nbsp;</label>
+            <input type="checkbox" id="high_plt" name="high_plt" value="เกล็ดเลือดเกินเกณฑ์">
+            <label for="high_plt">high</label>
+            <input type="checkbox" id="low_plt" name="low_plt" value="เกล็ดเลือดต่ำกว่าเกณฑ์">
+            <label for="low_plt">low</label>
+            <input type="number" id="plt_input" name="plt_input" min="0" step="any" style="width:50px; margin-left:5px;"
+                placeholder="PLT">
+        </fieldset>
+
+        <fieldset>
+            <legend class="cbc-legend">Sugar</legend>
+            <input type="checkbox" id="ifg" name="ifg" value="ระดับน้ำตาลสูง">
+            <label for="ifg">IFG</label>
+            <input type="checkbox" id="dm" name="dm" value="ระดับน้ำตาลสูงสงสัยภาวะเบาหวาน">
+            <label for="dm">DM</label>
+            <input type="checkbox" id="OB" name="OB" value="น้ำหนักเกินเกณฑ์">
+            <label for="OB">OB</label>
+            <input type="checkbox" id="low_vitD" name="low_vitD" value="ระดับวิตามินดีในเลือด น้อยกว่าเกณฑ์">
+            <label for="low_vitD">D</label>
+
+            <input type="number" id="sugar_input" name="sugar_input" min="0" step="any" style="margin-left: 20px;"
+                placeholder="BS">
+            <input type="number" id="hba1c_input" name="hba1c_input" min="0" step="any" style="margin-left: 5px;"
+                placeholder="HbA1c">
+            <input type="number" id="vitd_input" name="vitd_input" min="0" step="any" style="margin-left: 5px;"
+                placeholder="VitD"><br>
+
+            <label for="kidneyidney">kidney&nbsp;</label>
+            <input type="checkbox" id="high_BUN_Cr" name="high_BUN_Cr" value="ค่าการทำงานของไตเกินเกณฑ์">
+            <label for="bun">bun/cr&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input type="number" id="bun_input" placeholder="BUN" style="width:45px; margin-left:5px;">
+            <input type="number" id="cr_input" placeholder="Cr" style="width:45px; margin-left:5px;">
+            <input type="number" id="gfr_input" placeholder="GFR" style="width:45px; margin-left:5px;">
+            <br>
+
+            <label for="Uric"> Uric&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input type="checkbox" id="hyper_uric" name="hyper_uric" value="ระดับกรดยูริคเกินเกณฑ์">
+            <label for="uric">uric&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <!-- เพิ่มช่องกรอก Uric + auto-check -->
+            <input type="number" id="uric_input" name="uric_input" min="0" step="any" style="margin-left:8px;"
+                placeholder="Uric">
+            <br>
+
+            <label class="cbc-legend" for="lipid">lipid</label>
+            <br>
+            <input type="checkbox" id="high_LDL" name="high_LDL"
+                value="ระดับไขมัน CHOL(>200) , LDL-C (130-190) เกินเกณฑ์ ">
+            <label for="chol_ldl">chol/LDL 130 - 190</label>
+            <input type="checkbox" id="hyper_LDL" name="hyper_LDL"
+                value="ระดับไขมัน CHOL(>200) , LDL-C (>190) เกินเกณฑ์ ">
+            <label for="chol_ldl_high">>190</label>
+            <input type="number" id="chol_input" name="chol_input" min="0" step="any" style="margin-left: 53px;"
+                placeholder="chol">
+            <input type="number" id="ldl_input" name="ldl_input" min="0" step="any" style="margin-left: 5px;"
+                placeholder="LDL"><br>
+
+            <input type="checkbox" id="moderate_HTG" name="moderate_HTG" value="ไขมันไตรกลีเซอไรด์ เกินเกณฑ์ (150-500)">
+            <label for="tg"> TG 150-450&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input type="checkbox" id="severe_HTG" name="severe_HTG" value="ไขมันไตรกลีเซอไรด์ เกินเกณฑ์ (>500)">
+            <label for="TG>500">TG>500&nbsp;</label>
+            <input type="number" id="tg_input" name="tg_input" min="0" step="any" style="margin-left: 30px;"
+                placeholder="TG"><br>
+
+            <label class="cbc-legend"
+                for="cardio">Cardio&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input type="checkbox" id="ekg_abn" name="ekg_abn" value="สงสัยผลกราฟไฟฟ้าหัวใจผิดปกติ เล็กน้อย(EKG)">
+            <select id="ekg_type" name="ekg_type" style="margin-left: 5px; padding: 2px 4px; border-radius: 4px;">
+                <option value="EKG">EKG</option>
+                <option value="EKG*">EKG*</option>
+            </select>
+            <input type="checkbox" id="ht" name="ht" value="ความดันโลหิตสูง (HT)">
+            <label for="ht">HT</label>
+            <input type="text" id="ht_input" name="ht_input" placeholder="BP" style="width: 50px; margin-left: 5px;">
+            <select id="gender_select" name="gender_select" style="margin-left: 5px; padding: 2px 4px; border-radius: 4px;">
+                <option value="M">M</option>
+                <option value="F">F</option>
+            </select>
+            <input type="number" id="age_input" name="age_input" placeholder="Age" style="width: 45px; margin-left: 5px;">
+            <input type="checkbox" id="SM" name="SM" value="สูบบุหรี่" style="margin-left: 10px;">
+            <label for="SM">SM</label>
+        </fieldset>
+
+        <fieldset>
+            <legend class="cbc-legend">Liver</legend>
+            <input type="checkbox" id="high_ast" name="high_ast" value="ค่าตับ SGOT เกินเกณฑ์">
+            <label for="high_ast">AST/SGOT</label>
+            <input type="number" id="ast_input" name="ast_input" min="0" step="any"
+                style="width:35px; margin-left:5px; font-size:13px;" placeholder="AST">
+            <input type="checkbox" id="high_alt" name="high_alt" value="ค่าตับ SGPT เกินเกณฑ์">
+            <label for="high_alt">ALT/ SGPT</label>
+            <input type="number" id="alt_input" name="alt_input" min="0" step="any"
+                style="width:35px; margin-left:5px; font-size:13px;" placeholder="ALT">
+            <input type="checkbox" id="high_ggt" name="high_ggt" value="ค่าตับ GGT เกินเกณฑ์">
+            <select id="ggt_type" onchange="updateTextareas()" style="margin-left:5px;">
+                <option value="GGT">GGT</option>
+                <option value="AFP">AFP</option>
+                <option value="CEA">CEA</option>
+                <option value="CA19-9">CA19-9</option>
+            </select>
+            <input type="number" id="ggt_input" name="ggt_input" min="0" step="any"
+                style="width:45px; margin-left:5px; font-size:13px;" placeholder="Val">
+        </fieldset>
+
+        <fieldset>
+            <legend class="cbc-legend">UA</legend>
+            <input type="checkbox" id="ua_wbc" name="ua_wbc" value="เม็ดเลือดขาว">
+            <label for="wbc_ua">WBC</label>
+            <input type="checkbox" id="ua_rbc" name="ua_rbc" value="เม็ดเลือดแดง">
+            <label for="rbc">RBC</label>
+            <input type="checkbox" id="ua_protein" name="ua_protein" value="โปรตีน">
+            <label for="protein">Protein</label>
+            <input type="checkbox" id="ua_sugar" name="ua_sugar" value="น้ำตาล">
+            <label for="sugar">sugar</label>
+            <input type="checkbox" id="ua_bilirubin" name="ua_bilirubin" value="บิลิรูบิน">
+            <label for="ua_bilirubin">Bili</label>
+            <input type="checkbox" id="ua_ketone" name="ua_ketone" value="คีโตน">
+            <label for="ketone">ketone</label>
+        </fieldset>
+
+        <fieldset>
+            <legend class="cbc-legend">CXR</legend>
+            <input type="checkbox" id="lung_fibrosis" name="lung_fibrosis"
+                value="เอกซเรย์ปอดสงสัยรอยโรคเก่า/หรือ ผังผืด แนะนำตรวจเพิ่มกับแพทย์อายุรกรรทางเดินหายใจ">
+            <label for="fibrosis">fibrosis</label>
+            <input type="checkbox" id="lung_atelectesis" name="lung_atelectesis"
+                value="เอกซเรย์ปอดสงสัยเนื้อปอดบางส่วนแฟบ แนะนำตรวจเพิ่มกับแพทย์อายุรกรรทางเดินหายใจ">
+            <label for="lung_atelectesis">atelec</label>
+            <input type="checkbox" id="lung_abn" name="lung_abn"
+                value="เอกซเรย์ปอดสงสัยผิดปกติ สงสัยรอยโรค แนะนำตรวจเพิ่มกับแพทย์อายุรกรรทางเดินหายใจ">
+            <label for="abn">abn</label>
+            <input type="checkbox" id="cardiomeg" name="cardiomeg" value="เอกซเรย์ปอดสงสัยภาวะหัวใจโต cardiomegaly">
+            <label for="cardiomeg">cardiomeg</label>
+            <input type="checkbox" id="cxr_athero" name="cxr_athero"
+                value="เอกซเรย์ปอดสงสัยภาวะหลอดเลือดแข็ง (Atherosclerosis)">
+            <label for="athero">athero</label>
+        </fieldset>
+
+        <fieldset>
+            <legend class="cbc-legend">U/S</legend>
+            <input type="checkbox" id="fatty_liver" name="fatty_liver" value="ไขมันเกาะตับ">
+            <label for="fatty_liver">fatty liver</label>
+            <input type="checkbox" id="liver_hyper" name="liver_hyper" value="จุดสีผิดปกติที่ตับ">
+            <label for="liver_hyper">liver hyper</label>
+            <input type="checkbox" id="liver_cyst" name="liver_cyst" value="ถุงน้ำที่ตับ">
+            <label for="liver_cyst">cyst</label>
+            <label class="cbc-legend" for="gb">GB</label>
+            <input type="checkbox" id="gb_polyp" name="gb_polyp" value="ติ่งเนื้อที่ถุงน้ำดี">
+            <label for="polyp">polyp</label>
+            <input type="checkbox" id="gb_stone" name="gb_stone" value="นิ่วที่ถุงน้ำดี">
+            <label for="stone">stone</label>
+            <input type="checkbox" id="gb_adenomyomatosis" name="gb_adenomyomatosis" value="ผนังถุงน้ำดีหนาตัว">
+            <label for="gb_adenomyomatosis">adeno</label>
+        </fieldset>
+
+        <fieldset>
+            <legend class="cbc-legend">Renal</legend>
+            <input type="checkbox" id="renal_stone" name="renal_stone" value="นิ่ว">
+            <label for="stone_cyst">stone</label>
+            <input type="checkbox" id="renal_cyst" name="renal_cyst" value="ถุงน้ำ">
+            <label for="cyst">cyst</label>
+            <input type="checkbox" id="renal_hyper" name="renal_hyper" value="จุดสีผิดปกติที่ไต">
+            <label for="hyper/hyp">hyper/hyp</label>
+            <input type="checkbox" id="bph" name="bph" value="สงสัยภาวะต่อมลูกหมากโต">
+            <label for="bph">BPH</label>
+            <input type="checkbox" id="psa_high" name="psa_high" value="สงสัยสารบ่งชี้มะเร็งต่อมลูกหมากเกินเกณฑ์(PSA)">
+            <label for="psa_high">PSA</label>
+        </fieldset>
+
+        <fieldset>
+            <legend class="cbc-legend">Gyne</legend>
+            <input type="checkbox" id="myoma" name="myoma" value="เนื้องอกที่มดลูก">
+            <label for="myoma">myoma</label>
+            <input type="checkbox" id="ovarian_cyst" name="ovarian_cyst" value="ถุงน้ำในรังไข่">
+            <label for="ovarian_cyst">ovarian cyst</label>
+            <input type="checkbox" id="nabothian_cyst" name="nabothian_cyst" value="ถุงน้ำที่ปากมดลูก">
+            <label for="nabothian_cyst">nabo</label>
+            <input type="checkbox" id="osteopenia" name="osteopenia" value="สงสัยภาวะกระดูกบาง">
+            <label for="osetope">osteopenia</label>
+            <input type="checkbox" id="osteoporosis" name="osteoporosis" value="สงสัยภาวะกระดูกพรุน">
+            <label for="osteopo">osteoporosis</label>
+        </fieldset>
+
+        <div class="flex-container">
+            <fieldset>
+                <legend class="cbc-legend">MMG</legend>
+                <input type="checkbox" id="breast_cyst" name="breast_cyst" value="ถุงน้ำ">
+                <label for="cyst">cyst</label>
+                <input type="checkbox" id="breast_cal" name="breast_cal" value="แคลเซียม">
+                <label for="cal">cal</label>
+                <input type="checkbox" id="breast_mass" name="breast_mass" value="ก้อน">
+                <label for="mass">mass</label>
+                <input type="checkbox" id="birad_2" name="birad" value="(BIRADS>2)">
+                <label for="birad">BIRAD>2</label>
+            </fieldset>
+
+            <fieldset>
+                <legend class="cbc-legend">Vaccine</legend>
+                <input type="checkbox" id="hepB_vac" name="hepB_vac" value="แนะนำฉีดวัคซีนไวรัสตับอักเสบบี">
+                <label for="hepB_vac">B vac</label>
+                <input type="checkbox" id="influ_vac" name="influ_vac"
+                    value="แนะนำฉีดวัคซีนป้องกันไข้หวัดใหญ่ เป็นประจำทุกปี">
+                <label for="influ_vac">Influ</label>
+            </fieldset>
+        </div>
+
+        <div>
+            <button type="button" onclick="copyText('textExplain')">Copy Text</button>
+            <div>
+                <textarea id="textExplain" rows="9" cols="90">text explain</textarea>
+                <button type="button" onclick="copyText('textExplain')">Copy Text</button>
+            </div>
+
+            <div>
+                <button type="button" onclick="copyText('textShortNote')">Copy Short Note</button>
+                <input type="checkbox" id="refuse_treatment" name="refuse_treatment" onchange="updateTextareas()">
+                <label for="refuse_treatment">Refuse</label>
+                <div />
+                <textarea id="textShortNote" rows="8" cols="90">text short note</textarea>
+                <button type="button" onclick="copyText('textShortNote')">Copy Short Note</button>
+            </div>
+
+            <button type="button" onclick="clearForm()">Clear All</button>
+        </div>
+
+    </form>
+
+    <script>
+        // ===== พื้นหลังฟ้าอ่อนเมื่อเลือก “ไม่ตรวจร่างกายไม่รอฟัง” =====
+        document.getElementById('No').addEventListener('change', function () {
+            document.body.classList.toggle('no-exam', this.checked);
+            updateTextareas();
+        });
+
+        // ====== สรุปข้อความ (ยึดข้อความเดิม 100% + เพิ่ม N/L/E + Uric auto-check + OB) ======
+        function updateTextareas() {
+            let textExplain = '';
+            let textShortNote = '';
+            let explainCounter = 1; // Counter for textExplain
+            let shortNoteCounter = 1; // Counter for textShortNote
+
+            // 检查 "No" 复选框是否被选中
+            const noChecked = document.querySelector('#No').checked;
+            // 添加总结标题
+            if (noChecked) {
+                textExplain += "###### สรุปปัญหาสุขภาพ Problems List ไม่ได้สะดวกรอฟังผลเลือด และตรวจร่างกาย ######\n";
+                textShortNote += "***ผู้ป่วย ไม่สะดวกรอฟังผล และตรวจร่างกายอย่างละเอียด ต้องการรอรับผลที่บ้าน/บริษัท***\n";
+                textShortNote += "Problem lists\n\n";
+            } else {
+                textExplain += "###### สรุปปัญหาสุขภาพ Problems List ######\n";
+               
+                textShortNote += "Problem lists\n\n";
+            }
+
+            // CBC Summary (เพิ่ม N/L/E ลงในข้อความเดิม)
+            const anemiaChecked = document.getElementById('anemia').checked;
+            const hbVal = parseFloat(document.getElementById('hb_input').value);
+            const hctVal = parseFloat(document.getElementById('hct_input').value);
+            const high_wbc = document.getElementById('high_wbc').checked;
+            const low_wbc = document.getElementById('low_wbc').checked;
+            let wbcValText = document.getElementById('wbc_input').value; // Get WBC value
+            if (wbcValText) {
+                const num = parseFloat(wbcValText.replace(/,/g, ''));
+                if (!isNaN(num)) {
+                    wbcValText = num.toLocaleString();
+                }
+            }
+            const high_plt = document.getElementById('high_plt').checked;
+            const low_plt = document.getElementById('low_plt').checked;
+            const pltValText = document.getElementById('plt_input').value; // Get PLT value
+
+            const N = document.getElementById('wbc_N').checked;
+            const L = document.getElementById('wbc_L').checked;
+            const E = document.getElementById('wbc_E').checked;
+
+            const thaiDiff = [];
+            const noteDiff = [];
+            if (N) { thaiDiff.push('นิวโตรฟิล'); noteDiff.push('N'); }
+            if (L) { thaiDiff.push('ลิมโฟไซด์'); noteDiff.push('L'); }
+            if (E) { thaiDiff.push('อีโอสิโนฟิล'); noteDiff.push('E'); }
+
+            const diffThaiStr = thaiDiff.length ? ` (${thaiDiff.join(', ')})` : '';
+            const diffNoteStr = noteDiff.length ? `(${noteDiff.join(',')})` : '';
+
+            const cbcFindingsThai = [];
+            const cbcFindingsShort = [];
+            let isAnemiaSevere = false;
+
+            if (anemiaChecked) {
+                let details = [];
+                let detailsShort = [];
+                if (!isNaN(hbVal)) {
+                    details.push(`Hb ${hbVal}`);
+                    detailsShort.push(`Hb ${hbVal}`);
+                }
+                if (!isNaN(hctVal)) {
+                    details.push(`HCT ${hctVal}`);
+                    detailsShort.push(`HCT ${hctVal}`);
+                }
+                
+                const detailsStr = details.length > 0 ? ` (${details.join(', ')})` : '';
+                const detailsShortStr = detailsShort.length > 0 ? ` ${detailsShort.join(', ')}` : '';
+                
+                cbcFindingsThai.push(`สงสัยภาวะเลือดจาง (anemia)${detailsStr}`);
+                cbcFindingsShort.push(`anemia${detailsShortStr}`);
+                
+                if (!isNaN(hctVal) && hctVal < 30) isAnemiaSevere = true;
+                if (!isNaN(hbVal) && hbVal < 10) isAnemiaSevere = true;
+            }
+
+            if (high_wbc) {
+                cbcFindingsThai.push(`เม็ดเลือดขาวเกินเกณฑ์${wbcValText ? ` (${wbcValText})` : ''}${diffThaiStr}`);
+                cbcFindingsShort.push(`high_wbc${wbcValText ? `(${wbcValText})` : ''}${diffNoteStr}`);
+            } else if (low_wbc) {
+                cbcFindingsThai.push(`เม็ดเลือดขาวต่ำกว่าเกณฑ์${wbcValText ? ` (${wbcValText})` : ''}${diffThaiStr}`);
+                cbcFindingsShort.push(`low_wbc${wbcValText ? `(${wbcValText})` : ''}${diffNoteStr}`);
+            }
+
+            if (high_plt) {
+                cbcFindingsThai.push(`เกล็ดเลือดเกินเกณฑ์${pltValText ? ` (${pltValText},000)` : ''}`);
+                cbcFindingsShort.push(`high_plt${pltValText ? `(${pltValText}K)` : ''}`);
+            } else if (low_plt) {
+                cbcFindingsThai.push(`เกล็ดเลือดต่ำกว่าเกณฑ์${pltValText ? ` (${pltValText},000)` : ''}`);
+                cbcFindingsShort.push(`low_plt${pltValText ? `(${pltValText}K)` : ''}`);
+            }
+
+            if (cbcFindingsThai.length > 0) {
+                let recThai = "";
+                let recShort = "";
+                
+                if (cbcFindingsThai.length > 1 || !anemiaChecked) {
+                    recThai = " แนะนำตรวจติดตามเพิ่มเติมกับแพทย์อายุรกรรมโรคเลือด";
+                    recShort = "  consult && F/U hematologist";
+                } else {
+                    // Only anemia is checked
+                    if (isAnemiaSevere) {
+                        recThai = " แนะนำรักษา กับแพทย์อายุรกรรมโรคเลือด";
+                        recShort = " advice consult hematologist";
+                    } else {
+                        recThai = " แนะนำตรวจติดตาม กับแพทย์อายุรกรรมโรคเลือด";
+                        recShort = " advice F/U hematologist";
+                    }
+                }
+                
+                textExplain += `${explainCounter++}. ${cbcFindingsThai.join(', ')}${recThai}\n`;
+                textShortNote += `${shortNoteCounter++}. ${cbcFindingsShort.join(', ')}${recShort}\n`;
+            }
+
+
+            // NCD Summary (เดิม + Uric auto-check + OB + HbA1c)
+            const sugarValue = document.getElementById('sugar_input').value;
+            const hba1cValue = document.getElementById('hba1c_input').value; // Get HbA1c
+            const uricValue = document.getElementById('uric_input')?.value || '';
+            let uricExplain = document.getElementById('hyper_uric').checked ? document.getElementById('hyper_uric').value : '';
+            let uricShort = document.getElementById('hyper_uric').checked ? 'hyper_uric' : '';
+
+            // Append value to Uric text if value exists
+            if (uricExplain && uricValue) {
+                uricExplain += ` (${uricValue})`;
+            }
+            if (uricShort && uricValue) {
+                uricShort += ` (${uricValue})`;
+            }
+
+            const uricExplainText = uricExplain ? `, ${uricExplain}` : '';
+            const uricShortText = uricShort ? `, ${uricShort}` : '';
+            const OBText = document.getElementById('OB').checked ? document.getElementById('OB').value : '';
+            const OBShort = document.getElementById('OB').checked ? 'over_weight' : '';
+            const OBTextt = OBText ? `, ${OBText}` : '';
+            const OBShortt = OBShort ? `, ${OBShort}` : '';
+
+            // Vit D values
+            const vitDValue = document.getElementById('vitd_input').value;
+            const lowVitDChecked = document.getElementById('low_vitD').checked;
+            let vitDExplain = '';
+            let vitDShort = '';
+            if (lowVitDChecked) {
+                vitDExplain = `ระดับวิตามินดีในเลือด${vitDValue ? ` (${vitDValue})` : ''} น้อยกว่าเกณฑ์`;
+                vitDShort = `low_vitD${vitDValue ? ` (${vitDValue})` : ''}`;
+            }
+            const vitDTextt = vitDExplain ? `, ${vitDExplain}` : '';
+            const vitDShortt = vitDShort ? `, ${vitDShort}` : '';
+
+            // Prepare HbA1c string to append if sugar context exists
+            let hba1cAppend = "";
+            let hba1cValNum = parseFloat(hba1cValue);
+            if (!isNaN(hba1cValNum)) {
+                hba1cAppend = ` (HbA1c ${hba1cValue})`;
+            }
+
+            // Track if we output HbA1c in the appended format
+            let appendedHbA1c = false;
+
+            if (document.querySelector('#dm').checked) {
+                const sugarStr = sugarValue ? ` (${sugarValue})` : '';
+                textExplain += `${explainCounter++}. ${document.getElementById('dm').value}${sugarStr}${hba1cAppend}${uricExplainText}${OBTextt}${vitDTextt} แนะนำ ควบคุมอาหาร ออกกำลังกาย และตรวจรักษาเพิ่มเติมกับแพทย์อายุรกรรม\n`;
+                textShortNote += `${shortNoteCounter++}. dm ${sugarValue || ''}${hba1cAppend}${uricShortText}${OBShortt}${vitDShortt} advice lifestyle mod & consult internal med/endocrinologist\n`;
+                appendedHbA1c = true;
+            } else if (document.querySelector('#ifg').checked) {
+                const sugarStr = sugarValue ? ` (${sugarValue})` : '';
+                textExplain += `${explainCounter++}. ${document.getElementById('ifg').value}${sugarStr}${hba1cAppend}${uricExplainText}${OBTextt}${vitDTextt} แนะนำ ควบคุมอาหาร ออกกำลังกาย และตรวจติดตามเพิ่มเติมกับแพทย์อายุรกรรม\n`;
+                textShortNote += `${shortNoteCounter++}. ifg ${sugarValue || ''}${hba1cAppend}${uricShortText}${OBShortt}${vitDShortt} advice lifestyle mod & consult & f/u internal med/endocrinologist\n`;
+                appendedHbA1c = true;
+            } else if (document.querySelector('#hyper_uric').checked) {
+                textExplain += `${explainCounter++}. ${uricExplain}${OBTextt}${vitDTextt} แนะนำ ควบคุมอาหาร ออกกำลังกาย และตรวจติดตามเพิ่มเติมกับแพทย์อายุรกรรม\n`;
+                textShortNote += `${shortNoteCounter++}. ${uricShort}${OBShortt}${vitDShortt} advice lifestyle mod & consult & f/u internal med/endocrinologist\n`;
+            } else if (document.querySelector('#OB').checked) {
+                textExplain += `${explainCounter++}. ${OBText}${vitDTextt} แนะนำ ควบคุมอาหาร ออกกำลังกาย และตรวจติดตามเพิ่มเติมกับแพทย์อายุรกรรม\n`;
+                textShortNote += `${shortNoteCounter++}. over_weight${vitDShortt} advice lifestyle mod & consult & f/u internal med/endocrinologist\n`;
+            } else if (lowVitDChecked) {
+                textExplain += `${explainCounter++}. ${vitDExplain} แนะนำ ควบคุมอาหาร ออกกำลังกาย และตรวจติดตามเพิ่มเติมกับแพทย์อายุรกรรม\n`;
+                textShortNote += `${shortNoteCounter++}. ${vitDShort} advice lifestyle mod & consult & f/u internal med/endocrinologist\n`;
+            }
+
+            // Independent HbA1c check (If appended logic was NOT used)
+            if (!appendedHbA1c && !isNaN(hba1cValNum)) {
+                if (hba1cValNum >= 5.7 && hba1cValNum <= 6.4) {
+                    textExplain += `${explainCounter++}. ระดับน้ำตาลlสะสมเริ่มสูง (HbA1c ${hba1cValue}) แนะนำ ควบคุมอาหาร ออกกำลังกาย และตรวจติดตามเพิ่มเติมกับแพทย์อายุรกรรม\n`;
+                    textShortNote += `${shortNoteCounter++}. HbA1c ${hba1cValue} advice lifestyle mod && f/u internal med/endocrinologist\n`;
+                } else if (hba1cValNum > 6.4) {
+                    textExplain += `${explainCounter++}. ระดับน้ำตาลสะสมสูงสงสัยภาวะเบาหวาน (HbA1c ${hba1cValue}) แนะนำ ควบคุมอาหาร ออกกำลังกาย และตรวจรักษาเพิ่มเติมกับแพทย์อายุรกรรม\n`;
+                    textShortNote += `${shortNoteCounter++}. HbA1c ${hba1cValue} advice lifestyle mod & consult internal med/endocrinologist\n`;
+                }
+            }
+
+            // Cardio Summary (ยึดข้อความเดิม)
+            const cardioCheckboxes = document.querySelectorAll('#high_LDL, #hyper_LDL, #moderate_HTG, #severe_HTG, #cardiomeg, #cxr_athero, #ht, #ekg_abn');
+            const cholValue = document.getElementById('chol_input').value;
+            const ldlValue = document.getElementById('ldl_input').value;
+            const tgValue = document.getElementById('tg_input').value;
+
+            if (Array.from(cardioCheckboxes).some(cb => cb.checked)) {
+                let formattedValues = '';
+
+                // Lipid Text Generation
+                if (document.getElementById('high_LDL').checked || document.getElementById('hyper_LDL').checked) {
+                    let parts = [];
+                    // Only show what is typed
+                    if (cholValue) parts.push(`CHOL(${cholValue})`);
+                    if (ldlValue) parts.push(`LDL-C (${ldlValue})`);
+                    if (parts.length > 0) {
+                        formattedValues = `ระดับไขมัน ${parts.join(' , ')} เกินเกณฑ์`;
+                    } else {
+                        // Fallback if checked but no values typed (shouldn't happen with auto-check but possible manually)
+                        formattedValues = `ระดับไขมัน เกินเกณฑ์`;
+                    }
+                }
+
+                if (document.getElementById('moderate_HTG').checked) {
+                    formattedValues += (formattedValues ? ', ' : '') + `ไขมันไตรกลีเซอไรด์ เกินเกณฑ์ (${tgValue})`;
+                } else if (document.getElementById('severe_HTG').checked) {
+                    formattedValues += (formattedValues ? ', ' : '') + `ไขมันไตรกลีเซอไรด์ เกินเกณฑ์ (${tgValue})`;
+                }
+                if (document.getElementById('ekg_abn').checked) {
+                    const ekgType = document.getElementById('ekg_type').value;
+                    const ekgDesc = ekgType === 'EKG*' 
+                        ? 'สงสัยผลกราฟไฟฟ้าหัวใจผิดปกติ(EKG)' 
+                        : 'สงสัยผลกราฟไฟฟ้าหัวใจผิดปกติ เล็กน้อย(EKG)';
+                    formattedValues += (formattedValues ? ', ' : '') + ekgDesc;
+                }
+                if (document.getElementById('ht').checked) {
+                    const htVal = document.getElementById('ht_input').value;
+                    formattedValues += (formattedValues ? ', ' : '') + `ความดันโลหิตสูง (HT)${htVal ? ` (${htVal})` : ''}`;
+                }
+                if (document.getElementById('cardiomeg').checked) formattedValues += (formattedValues ? ', ' : '') + 'เอกซเรย์ปอดสงสัยภาวะหัวใจโต cardiomegaly';
+                if (document.getElementById('cxr_athero').checked) formattedValues += (formattedValues ? ', ' : '') + 'เอกซเรย์ปอดสงสัยภาวะหลอดเลือดแข็ง (Atherosclerosis)';
+
+                const ekgChecked = document.getElementById('ekg_abn').checked;
+                const ekgType = document.getElementById('ekg_type').value;
+                const htChecked = document.getElementById('ht').checked;
+                const highLdl = document.getElementById('high_LDL').checked;
+                const hyperLdl = document.getElementById('hyper_LDL').checked;
+                const modHtg = document.getElementById('moderate_HTG').checked;
+                const sevHtg = document.getElementById('severe_HTG').checked;
+                const cardiomeg = document.getElementById('cardiomeg').checked;
+                const athero = document.getElementById('cxr_athero').checked;
+
+                const needsDiet = highLdl || hyperLdl || modHtg || sevHtg || cardiomeg || athero || htChecked;
+                const prohibitExercise = ekgChecked;
+                const isSevere = hyperLdl || sevHtg || htChecked || (ekgChecked && ekgType === 'EKG*');
+
+                let actionParts = [];
+                if (needsDiet) {
+                    actionParts.push('ควบคุมอาหาร');
+                    if (!prohibitExercise) {
+                        actionParts.push('ออกกำลังกาย');
+                    }
+                }
+
+                let actionStr = '';
+                if (actionParts.length > 0) {
+                    actionStr = 'แนะนำ ' + actionParts.join(' ') + ' และ';
+                } else {
+                    actionStr = 'แนะนำ ';
+                }
+
+                let recommendationText = '';
+                let shortNoteText = '';
+
+                if (isSevere) {
+                    recommendationText = `${actionStr}ตรวจติดตาม รักษา กับแพทย์อายุรกรรมโรคหัวใจ\n`;
+                    shortNoteText = `advice lifestyle mod & consult cardiologist\n`;
+                } else {
+                    recommendationText = `${actionStr}ตรวจติดตาม กับแพทย์อายุรกรรมโรคหัวใจ\n`;
+                    shortNoteText = `advice lifestyle mod & f/u cardiologist\n`;
+                }
+
+                textExplain += `${explainCounter++}. ${formattedValues} ${recommendationText}`;
+                textShortNote += `${shortNoteCounter++}. ${formattedValues} ${shortNoteText}`;
+            }
+
+            // Liver Function Summary (New Logic with AST/ALT values)
+            const liverCheckboxes = document.querySelectorAll('#high_ast, #high_alt, #high_ggt, #fatty_liver, #liver_hyper, #liver_cyst, #gb_stone, #gb_polyp, #gb_adenomyomatosis');
+            if (Array.from(liverCheckboxes).some(cb => cb.checked)) {
+                const astChecked = document.getElementById('high_ast').checked;
+                const altChecked = document.getElementById('high_alt').checked;
+                const ggtChecked = document.getElementById('high_ggt').checked;
+
+                const astVal = document.getElementById('ast_input').value;
+                const altVal = document.getElementById('alt_input').value;
+
+                // Determine severity based on AST/ALT values (Priority: Consult if >= 60)
+                let maxVal = 0;
+                if (astChecked && astVal) maxVal = Math.max(maxVal, parseFloat(astVal));
+                if (altChecked && altVal) maxVal = Math.max(maxVal, parseFloat(altVal));
+
+                let isSevere = maxVal >= 60;
+
+                // Build Enzyme String
+                let enzymeParts = [];
+                let enzymeShorts = [];
+
+                if (astChecked) {
+                    enzymeParts.push(`SGOT ${astVal ? '(' + astVal + ')' : ''}`);
+                    enzymeShorts.push(`high_ast${astVal ? '(' + astVal + ')' : ''}`);
+                }
+                if (altChecked) {
+                    enzymeParts.push(`SGPT ${altVal ? '(' + altVal + ')' : ''}`);
+                    enzymeShorts.push(`high_alt${altVal ? '(' + altVal + ')' : ''}`);
+                }
+                if (ggtChecked) {
+                    const ggtType = document.getElementById('ggt_type').value;
+                    const ggtVal = document.getElementById('ggt_input').value;
+                    const ggtValStr = ggtVal ? ` (${ggtVal})` : '';
+                    const ggtShortValStr = ggtVal ? `(${ggtVal})` : '';
+
+                    if (ggtType === 'GGT') {
+                        enzymeParts.push(`GGT${ggtValStr}`);
+                        enzymeShorts.push(`high_ggt${ggtShortValStr}`);
+                    }
+                }
+
+                let summaryText = '';
+                if (enzymeParts.length > 0) {
+                    summaryText = `ค่าตับ ${enzymeParts.join(', ')} เกินเกณฑ์`;
+                }
+
+                // Append Tumor Markers (AFP, CEA, CA19-9) separate from "Liver value" group
+                if (ggtChecked) {
+                    const ggtType = document.getElementById('ggt_type').value;
+                    const ggtVal = document.getElementById('ggt_input').value;
+                    const ggtValStr = ggtVal ? ` (${ggtVal})` : '';
+                    const ggtShortValStr = ggtVal ? `(${ggtVal})` : '';
+
+                    if (ggtType === 'AFP') {
+                        if (summaryText) summaryText += ', ';
+                        summaryText += `สงสัยสารบ่งชี้มะเร็งตับเกินเกณฑ์(AFP)${ggtValStr}`;
+                        enzymeShorts.push(`high_AFP${ggtShortValStr}`);
+                    } else if (ggtType === 'CEA') {
+                        if (summaryText) summaryText += ', ';
+                        summaryText += `สงสัยสารบ่งชี้มะเร็งลำไส้ใหญ่เกินเกณฑ์(CEA)${ggtValStr}`;
+                        enzymeShorts.push(`high_CEA${ggtShortValStr}`);
+                    } else if (ggtType === 'CA19-9') {
+                        if (summaryText) summaryText += ', ';
+                        summaryText += `สงสัยสารบ่งชี้มะเร็งตับอ่อนเกินเกณฑ์(CA 19-9)${ggtValStr}`;
+                        enzymeShorts.push(`high_CA19-9${ggtShortValStr}`);
+                    }
+                }
+
+                // Append US findings
+                const usFindings = ['#fatty_liver', '#liver_hyper', '#liver_cyst', '#gb_polyp', '#gb_stone', '#gb_adenomyomatosis'].map(id => document.querySelector(id));
+                const checkedUS = usFindings.filter(cb => cb?.checked);
+                if (checkedUS.length > 0) {
+                    if (summaryText) summaryText += ', ';
+                    summaryText += 'ผลอัลตราซาวน์ช่องท้องบริเวณตับและถุงน้ำดีสงสัย ' + checkedUS.map(cb => cb.value).join(', ');
+                }
+
+                // Determine Advice
+                let adviceThai = '';
+                let adviceShort = '';
+
+                // Check if any tumor marker is selected (AFP, CEA, CA19-9)
+                let isTumorMarker = false;
+                if (ggtChecked) {
+                    const ggtType = document.getElementById('ggt_type').value;
+                    if (['AFP', 'CEA', 'CA19-9'].includes(ggtType)) {
+                        isTumorMarker = true;
+                    }
+                }
+
+                if (isSevere || isTumorMarker) {
+                    adviceThai = ' แนะนำตรวจเพิ่มเติม และรักษากับแพทย์อายุรกรรมทางเดินอาหาร';
+                    adviceShort = ' advice work up && consult GI med';
+                } else {
+                    adviceThai = ' แนะนำตรวจติดตามเพิ่มเติมกับแพทย์อายุรกรรมทางเดินอาหาร';
+                    adviceShort = ' advice work up && f/u GI';
+                }
+
+                let shortNoteIds = enzymeShorts.concat(checkedUS.map(cb => cb.id));
+
+                // Only if we have some text
+                if (summaryText || checkedUS.length > 0) {
+                    // Fallback for empty text if only US checked (logic continuation)
+                    if (!summaryText && checkedUS.length > 0) summaryText = "";
+
+                    textExplain += `${explainCounter++}. ${summaryText}${adviceThai}\n`;
+                    textShortNote += `${shortNoteCounter++}. ${shortNoteIds.join(', ')}${adviceShort}\n`;
+                }
+            }
+
+            // CXR Summary (เดิม)
+            const cxrCheckboxes = document.querySelectorAll('#lung_fibrosis, #lung_atelectesis, #lung_abn');
+            if (Array.from(cxrCheckboxes).some(cb => cb.checked)) {
+                const values = Array.from(cxrCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(', ');
+                const ids = Array.from(cxrCheckboxes).filter(cb => cb.checked).map(cb => cb.id).join(', ');
+                textExplain += `${explainCounter++}. ${values}\n`;
+                textShortNote += `${shortNoteCounter++}. ${ids} advice work up & consult & f/u pulmologist\n`;
+            }
+
+            // Kidney + UA Summary (เดิม)
+            const kidneyCheckboxes = document.querySelectorAll('#high_BUN_Cr');
+            const uaCheckboxes = document.querySelectorAll('#ua_wbc, #ua_rbc, #ua_protein, #ua_sugar, #ua_bilirubin, #ua_ketone');
+
+            // Kidney Custom Logic
+            const bunVal = document.getElementById('bun_input')?.value;
+            const crVal = document.getElementById('cr_input')?.value;
+            const gfrVal = document.getElementById('gfr_input')?.value;
+            const bunNum = parseFloat(bunVal);
+            const crNum = parseFloat(crVal);
+            const gfrNum = parseFloat(gfrVal);
+
+            let kidneyTextOverride = null;
+            let kidneyShortOverride = null;
+            let extraKidneyText = null;
+            let extraKidneyShort = null;
+
+            // Logic 1: Abnormal
+            // Logic 1: Abnormal
+            if ((!isNaN(bunNum) && bunNum > 24) || (!isNaN(crNum) && crNum > 1.2) || (!isNaN(gfrNum) && gfrNum < 60)) {
+                let parts = [];
+                if (bunVal) parts.push(`BUN =${bunVal}`);
+                if (crVal) parts.push(`Cr=${crVal}`);
+                if (gfrVal) parts.push(`อัตราการกรองของไต GFR=${gfrVal}`);
+                kidneyTextOverride = `ค่าการทำงานของไตเริ่มผิดปกติ (${parts.join(' , ')}) แนะนำตรวจเพิ่มเติมกับแพทย์อายุรกรรม โรคไต`;
+
+                let shortParts = [];
+                if (bunVal && bunNum > 24) shortParts.push(`high BUN (${bunVal})`);
+                if (crVal && crNum > 1.2) shortParts.push(`high Cr (${crVal})`);
+                if (gfrVal && gfrNum < 60) shortParts.push(`low GFR (${gfrVal})`);
+                // Fallback if checked but logic mismatch (shouldn't happen with correct auto-check)
+                if (shortParts.length === 0) shortParts.push('kidney function abn');
+                kidneyShortOverride = `${shortParts.join(',')} consult / f/u nephro`;
+            }
+            // Logic 2: Mild GFR decrease
+            else if (!isNaN(gfrNum) && gfrNum >= 61 && gfrNum <= 89) {
+                extraKidneyText = `ค่าอัตราการกรองของไตเริ่มลดลง (GFR=${gfrVal}) แนะนำ ควบคุมอาหาร (ลดโซเดียม) และ ตรวจติดตามกับแพทย์อายุรกรรม โรคไต`;
+                extraKidneyShort = `GFR (${gfrVal}) advice low salt diet & f/u nephro`;
+            }
+
+            if (extraKidneyText) {
+                textExplain += `${explainCounter++}. ${extraKidneyText}\n`;
+                textShortNote += `${shortNoteCounter++}. ${extraKidneyShort}\n`;
+            }
+
+            // Combined Trigger: checkbox or override (values)
+            if (kidneyTextOverride || Array.from(kidneyCheckboxes).some(cb => cb.checked) || Array.from(uaCheckboxes).some(cb => cb.checked)) {
+
+                let kidneyPart = '';
+                if (kidneyTextOverride) {
+                    // Strip the advice from the string we generated earlier
+                    kidneyPart = kidneyTextOverride.split(' แนะนำ')[0];
+                } else if (Array.from(kidneyCheckboxes).some(cb => cb.checked)) {
+                    kidneyPart = Array.from(kidneyCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(', ');
+                }
+
+                if (kidneyPart || Array.from(uaCheckboxes).some(cb => cb.checked)) {
+                    let summaryText = kidneyPart;
+                    if (Array.from(uaCheckboxes).some(cb => cb.checked)) {
+                        if (summaryText) summaryText += ', ';
+                        const uaValues = Array.from(uaCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(', ');
+                        summaryText += 'ปัสสาวะผิดปกติพบ: ' + uaValues;
+                    }
+
+                    if (document.querySelector('#ua_rbc').checked) {
+                        summaryText += ' แนะนำตรวจเพิ่มเติมกับแพทย์ทางเดินปัสสาวะ';
+                    } else {
+                        summaryText += ' แนะนำตรวจเพิ่มเติมกับแพทย์อายุรกรรม โรคไต';
+                    }
+                    textExplain += `${explainCounter++}. ${summaryText}\n`;
+
+                    // Short Note
+                    let shortNoteText = '';
+                    if (kidneyShortOverride) {
+                        shortNoteText += kidneyShortOverride.split(' consult')[0]; // Strip consult
+                    } else {
+                        const kIds = Array.from(kidneyCheckboxes).filter(cb => cb.checked).map(cb => cb.id).join(', ');
+                        if (kIds) shortNoteText += kIds;
+                    }
+
+                    const uaIds = Array.from(uaCheckboxes).filter(cb => cb.checked).map(cb => cb.id.replace('ua_', '')).join(', ');
+                    if (uaIds) {
+                        if (shortNoteText) shortNoteText += ', ';
+                        shortNoteText += 'UA: ' + uaIds;
+                    }
+
+                    const consult = document.querySelector('#ua_rbc').checked ? 'uro' : 'nephro';
+                    textShortNote += `${shortNoteCounter++}. ${shortNoteText} advice consult & f/u ${consult}\n`;
+                }
+            }
+
+
+
+            // Gyne Summary (เดิม)
+            const gyneCheckboxes = document.querySelectorAll('#myoma, #ovarian_cyst, #nabothian_cyst');
+            if (Array.from(gyneCheckboxes).some(cb => cb.checked)) {
+                const values = Array.from(gyneCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(', ');
+                const ids = Array.from(gyneCheckboxes).filter(cb => cb.checked).map(cb => cb.id).join(', ');
+                textExplain += `${explainCounter++}. ผลอัลตราซาวน์ช่องท้องส่วนล่างสงสัย ${values} แนะนำตรวจเพิ่มเติมกับแพทย์นรีเวช\n`;
+                textShortNote += `${shortNoteCounter++}. ${ids} advice work up & consult & f/u GYNE\n`;
+            }
+
+            // MMG Summary (เดิม)
+            const mmgCheckboxes = document.querySelectorAll('#breast_cyst, #breast_cal, #breast_mass, #birad_2');
+            if (Array.from(mmgCheckboxes).some(cb => cb.checked)) {
+                const values = Array.from(mmgCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(', ');
+                const ids = Array.from(mmgCheckboxes).filter(cb => cb.checked).map(cb => cb.id).join(', ');
+                const checkedCount = Array.from(mmgCheckboxes).filter(cb => cb.checked).length;
+                const biradChecked = document.querySelector('#birad_2').checked;
+                if (checkedCount > 1 || biradChecked) {
+                    textExplain += `${explainCounter++}. ผลอัลตราซาวน์และแมมโมแกรมบริเวณเต้านมสงสัย ${values}แนะนำตรวจเพิ่มเติมกับแพทย์ศัลยกรรมเต้านม และตรวจเต้านมด้วยตัวเอง\n`;
+                } else {
+                    textExplain += `${explainCounter++}. ผลอัลตราซาวน์และแมมโมแกรมบริเวณเต้านมสงสัย ${values}แนะนำตรวจติดตามกับแพทย์ศัลยกรรมเต้านม และตรวจเต้านมด้วยตัวเอง\n`;
+                }
+                textShortNote += `${shortNoteCounter++}. ${ids} advice self breast exam & consult & f/u breast\n`;
+            }
+
+            // Bone Summary (เดิม)
+            const boneCheckboxes = document.querySelectorAll('#osteopenia, #osteoporosis');
+            if (Array.from(boneCheckboxes).some(cb => cb.checked)) {
+                const values = Array.from(boneCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(', ');
+                const ids = Array.from(boneCheckboxes).filter(cb => cb.checked).map(cb => cb.id).join(', ');
+                if (document.querySelector('#osteopenia').checked && !document.querySelector('#osteoporosis').checked) {
+                    textExplain += `${explainCounter++}. ${values} แนะนำตรวจติดตามเพิ่มเติมกับแพทย์ศัลยกรรมกระดูก\n`;
+                    textShortNote += `${shortNoteCounter++}. ${ids} consult & F/U ortho\n`;
+                } else {
+                    textExplain += `${explainCounter++}. ${values} แนะนำตรวจติดตามรักษากับแพทย์ศัลยกรรมกระดูก\n`;
+                    textShortNote += `${shortNoteCounter++}. ${ids} consult ortho\n`;
+                }
+            }
+
+            // Renal Summary (เดิม)
+            const renalCheckboxes = document.querySelectorAll('#renal_stone, #renal_cyst, #renal_hyper, #bph, #psa_high');
+            if (Array.from(renalCheckboxes).some(cb => cb.checked)) {
+                const bphChecked = document.querySelector('#bph').checked;
+                const psaChecked = document.querySelector('#psa_high').checked;
+
+                const otherRenalCheckboxes = document.querySelectorAll('#renal_stone, #renal_cyst, #renal_hyper');
+                if (Array.from(otherRenalCheckboxes).some(cb => cb.checked)) {
+                    const values = Array.from(otherRenalCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(', ');
+                    const ids = Array.from(otherRenalCheckboxes).filter(cb => cb.checked).map(cb => cb.id).join(', ');
+                    textExplain += `${explainCounter++}. ผลอัลตราซาวน์ช่องท้องบริเวณไตสงสัย ${values} แนะนำตรวจเพิ่มเติมกับแพทย์ทางเดินปัสสาวะ\n`;
+                    textShortNote += `${shortNoteCounter++}. ${ids} advice work up & consult & f/u uro\n`;
+                }
+
+                // Urology Group (BPH + PSA)
+                if (bphChecked || psaChecked) {
+                    let explParts = [];
+                    let shortIds = [];
+
+                    if (bphChecked) {
+                        explParts.push(`ผลอัลตราซาวน์ช่องท้อง ${document.querySelector('#bph').value}`);
+                        shortIds.push('bph');
+                    }
+                    if (psaChecked) {
+                        explParts.push(document.querySelector('#psa_high').value);
+                        shortIds.push('high_PSA');
+                    }
+
+                    textExplain += `${explainCounter++}. ${explParts.join(' และ ')} แนะนำตรวจเพิ่มเติมกับแพทย์ทางเดินปัสสาวะ\n`;
+                    textShortNote += `${shortNoteCounter++}. ${shortIds.join(', ')} advice work up & consult & f/u uro\n`;
+                }
+            }
+
+            // hep B vaccine (เดิม)
+            if (document.querySelector('#hepB_vac').checked) {
+                textExplain += `${explainCounter++}. ${document.getElementById('hepB_vac').value}\n`;
+                textShortNote += `${shortNoteCounter++}. hepB_vac\n`;
+            }
+
+            // Influ vaccine (New)
+            if (document.querySelector('#influ_vac').checked) {
+                textExplain += `${explainCounter++}. ${document.getElementById('influ_vac').value}\n`;
+                textShortNote += `${shortNoteCounter++}. influ vacc : advice S/E ,-ADR,-egg ,-U/D\n`;
+            }
+
+            // เส้นคั่น + คำแนะนำ (เดิม)
+            textExplain += "\n------------------------------------------------------------------------------------------------------------------\n";
+            const showRecommendations =
+                document.querySelector('#ifg').checked || document.querySelector('#dm').checked || document.querySelector('#ht').checked ||
+                document.querySelector('#hyper_uric').checked || document.querySelector('#ekg_abn').checked ||
+                document.querySelector('#high_LDL').checked || document.querySelector('#hyper_LDL').checked ||
+                document.querySelector('#moderate_HTG').checked || document.querySelector('#severe_HTG').checked ||
+                document.getElementById('low_vitD').checked;
+
+            if (showRecommendations) {
+                textExplain += "**แนะนำ และแนวทางการปรับเปลี่ยนพฤติกรรม**\n";
+                if (document.querySelector('#ifg').checked || document.querySelector('#dm').checked) {
+                    textExplain += "--น้ำตาลในเลือดเริ่มสูง แนะนำ ลดการบริโภคน้ำตาลและแป้งส่วนเกินในมื้ออาหารประจำวันเพื่อลดปัจจัยเสี่ยงเบาหวานประเภทสอง\n";
+                    textExplain += "วิธีปฏิบัติตัวเมื่อน้ำตาลในเลือดสูง\n";
+                    textExplain += "1. งดการดื่มเหล้า/สูบบุหรี่\n";
+                    textExplain += "2. การออกกำลังกาย CARDIO(วิ่ง ,ปั่นจักรยาน ,เดินเร็ว,แกว่งแขน)ร่วมกับ WEIGHT TRAINING (ซิทอัพ, ดันพื้น, ยกดัมเบล ,โหนบาร์ )เพื่อเสริมสร้างกล้ามเนื้อ\n";
+                    textExplain += "3. หลีกเลี่ยง แป้งขัดสีขาว ,เครื่องดื่มใส่น้ำตาล น้ำอัดลม น้ำผลไม้แยกกาก,น้ําตาลซูโครส, น้ําตาลฟรุกโตส, ไขมันอิ่มตัว, ไขมันทรานส์ ไปกิน พืชผักธัญพืชไม่ขัดสี\n";
+                    textExplain += "4. ลดปริมาณการทานเนื้อแดง เนื้อสัตว์เลี้ยงลูกด้วยนม. เนื้อสัตว์แปรรูป เพราะเป็นอาหารที่มีไขมันอิ่มตัวสูงทำให้ร่างกายดื้อต่ออินซูลินมากขึ้นและทำให้เพิ่มโอกาสการเป็นเบาหวานมากขึ้นในอนาคต\n";
+                    textExplain += "***สรุปความคิดรวบยอด คือ ออกกำลังกาย สร้างกล้ามเนื้อ ลดไขมัน ลดคาร์โบโฮเดรต ทานใยอาหารให้มาก\n";
+                }
+                if (document.querySelector('#ht').checked) {
+                    textExplain += "--ความดันโลหิตเริ่มสูง ควรงดอาหารรสเค็ม ผงชูรส ควรวัดความดันโลหิตซ้ำอย่างสม่ำเสมอ\n";
+                }
+                if (document.querySelector('#hyper_uric').checked) {
+                    textExplain += "--กรดยูริคสูง ควรควบคุมอาหาร ถ้ามีอาการปวด บวม ร้อนตามข้อ แนะนำ พบแพทย์อายุรกรรม\n";
+                }
+                if (document.querySelector('#high_LDL').checked || document.querySelector('#hyper_LDL').checked || document.querySelector('#moderate_HTG').checked || document.querySelector('#severe_HTG').checked) {
+                    textExplain += "--ไขมันในเลือดสูง แนะนำ เริ่มทำ Total life style modification (งดไขมันทรานส์ ทานไขมันในมื้ออาหารปกติแบบเป็นสัดเป็นส่วน เสริมด้วยถั่วและธัญพืชเพิ่มโอเมก้า 9 , การเลิกสูบบุหรี่และออกกำลังกายชนิดคาร์ดิโอ เช่น วิ่ง เต้นแอโรบิค ปั่นจักรยาน สัปดาห์ละ 150 นาที ที่ความเหนื่อยปานกลางขึ้นไป)\n";
+                    textExplain += "--ผล HDL ที่เป็น Protective factor ของการป้องกันหลอดเลือดหนาแข็งมีในระดับค่อนข้างน้อย ไม่ควรละเลยการทำ Total life style modification ซึ่งเป็นหัวใจสำคัญของการป้องกันโรคหลอดเลือดหัวใจและสมอง\n";
+                    const ageVal = parseFloat(document.getElementById('age_input').value);
+                    if (!isNaN(ageVal)) {
+                        const sex = document.getElementById('gender_select').value === 'M' ? 1 : 0;
+                        const dm = (parseFloat(document.getElementById('sugar_input').value) >= 126 || document.getElementById('dm').checked) ? 1 : 0;
+                        
+                        const bpVal = document.getElementById('ht_input').value.trim();
+                        let sbp = document.getElementById('ht').checked ? 140 : 120;
+                        if (bpVal) {
+                            const parts = bpVal.split(/[\/\s\-]+/);
+                            const parsedSbp = parseFloat(parts[0]);
+                            if (!isNaN(parsedSbp)) sbp = parsedSbp;
+                        }
+                        
+                        const cholVal = parseFloat(document.getElementById('chol_input').value);
+                        const chol = !isNaN(cholVal) ? cholVal : 200;
+                        
+                        const smoking = document.getElementById('SM').checked ? 1 : 0;
+                        
+                        const fullScore = (0.08183 * ageVal) + (0.39499 * sex) + (0.02084 * sbp) + (0.69974 * dm) + (0.00212 * chol) + (0.41916 * smoking);
+                        const risk = 100 * (1 - Math.pow(0.978296, Math.exp(fullScore - 7.04423)));
+                        const riskValStr = Math.round(risk) + '%';
+                        
+                        let riskLevel = '';
+                        if (risk < 10) riskLevel = 'ต่ำ';
+                        else if (risk < 20) riskLevel = 'ปานกลาง';
+                        else if (risk < 30) riskLevel = 'สูง';
+                        else if (risk < 40) riskLevel = 'สูงมาก';
+                        else riskLevel = 'อันตราย';
+                        
+                        let cvText = '';
+                        if (risk < 10) {
+                            cvText = '--ผลโคเลสเตอรอล . HDL . LDL ที่ตรวจได้ในปีนี้จะถูกนำมาประเมินความเสี่ยงเส้นเลือดหัวใจสมองตีบในระยะ 10 ปี แนะนำ ให้ดูที่หน้าสุดท้ายของสมุดผลตรวจสุขภาพ หากพบว่าผลประเมินเกิน 10% ควรปรึกษาอายุรแพทย์เพื่อใช้ยาลดโคเลสเตอรอล';
+                        } else {
+                            cvText = `--ผลโคเลสเตอรอล . HDL . LDL ที่ตรวจได้ในปีนี้จะถูกนำมาประเมินความเสี่ยงเส้นเลือดหัวใจสมองตีบในระยะ 10 ปี ตาม Thai CV Risk Score เท่ากับ ${riskValStr} (ระดับความเสี่ยง ${riskLevel})`;
+                            if (risk > 10) {
+                                cvText += ' ควรปรึกษาอายุรแพทย์เพื่อใช้ยาลดโคเลสเตอรอล';
+                            } else {
+                                cvText += ' แนะนำตรวจติดตาม ระดับไขมันในเลือดอย่างต่อเนื่อง';
+                            }
+                        }
+                        textExplain += cvText + '\n';
+                    } else {
+                        textExplain += "--ผลโคเลสเตอรอล . HDL . LDL ที่ตรวจได้ในปีนี้จะถูกนำมาประเมินความเสี่ยงเส้นเลือดหัวใจสมองตีบในระยะ 10 ปี แนะนำ ให้ดูที่หน้าสุดท้ายของสมุดผลตรวจสุขภาพ หากพบว่าผลประเมินเกิน 10% ควรปรึกษาอายุรแพทย์เพื่อใช้ยาลดโคเลสเตอรอล\n";
+                    }
+                }
+                if (document.querySelector('#moderate_HTG').checked || document.querySelector('#severe_HTG').checked) {
+                    textExplain += "*พบไตรกลีเซอไรด์เกินเกณฑ์ แนะนำปฏิบัติดังนี้\n";
+                    textExplain += "1. ลดการบริโภคแป้งและน้ำตาลขัดขาว สลับไปทานข้าวกล้องบ้าง เลี่ยงน้ำตาลในเครื่องดื่มสำเร็จรูปที่ผสมฟรุ๊กโตสไซรัป\n";
+                    textExplain += "2. เพิ่มเนื้อปลาทะเลน้ำลึกหรือปลาแซลมอน เสริมโอเมก้า 3 ลดได้ 10-15% และเพิ่มธัญพืช ถั่วต่างๆ เพิ่มโอเมก้า 9\n";
+                    textExplain += "3. งดการดื่มเครื่องดื่มมีแอลกอฮอล์ทุกชนิด เพราะแอลกอฮอล์จะลดการดูดซึมไตรกลีเซอไรด์จากกระแสเลือด\n";
+                    textExplain += "4. ลดน้ำหนักร้อยละ 5 (1 กก. ลดไตรกลีเซอไรด์ได้ 8 มก.ต่อดล.)\n";
+                    textExplain += "5. ออกกำลังกายแบบแอโรบิค เช่น วิ่ง ปั่นจักรยาน กระโดดเชือก สัปดาห์ละ 150 นาที ลดไตรกลีเซอไรด์ได้ 10-20%\n";
+                    textExplain += "\n";
+                    textExplain += "Ref.European heart journal 2020 . AHA 2019 . ราชวิทยาลัยอายุรแพทย์\n";
+                }
+                if (document.querySelector('#ekg_abn').checked) {
+                    textExplain += "--กรณีสงสัยคลื่นไฟฟ้าหัวใจผิดปกติ ควรพบแพทย์อายุกรรมโรคหัวใจเพื่อการวินิจฉัยเพิ่มเติม\n";
+                    textExplain += "เมื่อมีอาการดังต่อไปนี้อาจเกิดจากหัวใจทำงานผิดปกติ ควรรีบพบแพทย์\n";
+                    textExplain += "1.หน้ามืดเป็นลม หรือหมดสติ บ่อยครั้ง\n";
+                    textExplain += "2.ใจสั่นบ่อยๆและต่อเนื่องเป็นเวลานาน\n";
+                    textExplain += "3.เจ็บแน่นหน้าอกแน่นๆเวลาออกแรง มีอาการเหนื่อแตกใจสั่นร่วมด้วยระยะเวลา15-20นาที ร้าวไปแขนซ้ายกรามซ้าย\n";
+                    textExplain += "4.เหนื่อยง่ายชัดเจนโดยเปรียบเทียบจากการทำกิจกรรมเดียวกันตอนที่ยังปกติ\n";
+                }
+                if (document.getElementById('low_vitD').checked) {
+                    textExplain += "--ระดับวิตามินดีต่ำ แนะนำ รับประทาน ปลาแซลมอน ปลาทูน่า ปลาซาดีน ปลาแมคเคอเรล ปลาตะเพียน ปลานิล เห็ดหอม\n";
+                }
+                textExplain += "\n------------------------------------------------------------------------------------------------------------------\n";
+            }
+
+            // Refuse Treatment Disclaimer
+            const refuseCb = document.getElementById('refuse_treatment');
+            const refuseLabel = document.querySelector('label[for="refuse_treatment"]');
+            if (refuseCb.checked) {
+                textShortNote += "\n*** แนะนำผู้ป่วยด้านการรักษา/ตรวจเพิ่มเติมกับแพทย์เฉพาะทางแล้ว ผู้ป่วยปฏิเสธการรักษา ขอไปตามสิทธิ์ ได้แจ้งความเสี่ยงและอาการที่ต้องรีบมารพ.ให้ทราบแล้ว ผู้ป่วยยอมรับ***";
+                if (refuseLabel) refuseLabel.style.backgroundColor = 'yellow';
+            } else {
+                if (refuseLabel) refuseLabel.style.backgroundColor = '';
+            }
+
+            document.getElementById('textExplain').value = textExplain.trim();
+            document.getElementById('textShortNote').value = textShortNote.trim();
+        }
+
+        // ===== legend highlight =====
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => { updateTextareas(); updateLegendStyle(checkbox); });
+        });
+
+        function updateLegendStyle(checkbox) {
+            const fieldset = checkbox.closest('fieldset');
+            if (!fieldset) return;
+            const legend = fieldset.querySelector('legend');
+            if (!legend) return;
+
+            const anyChecked = Array.from(fieldset.querySelectorAll('input[type="checkbox"]')).some(cb => cb.checked);
+
+            if (checkbox.id === 'high_BUN_Cr') {
+                const kidneyLabel = document.querySelector('label[for="kidneyidney"]');
+                if (kidneyLabel) { } // kept for exactness of structure; do nothing
+            }
+            if (checkbox.id === 'hyper_uric') {
+                const uricLabel = document.querySelector('label[for="Uric"]');
+                if (uricLabel) uricLabel.classList.toggle('highlight-legend', checkbox.checked || !!document.getElementById('uric_input').value);
+            }
+            if (['high_LDL', 'hyper_LDL', 'moderate_HTG', 'severe_HTG'].includes(checkbox.id)) {
+                const lipidLabel = document.querySelector('label[for="lipid"]');
+                const anyLipidChecked = ['high_LDL', 'hyper_LDL', 'moderate_HTG', 'severe_HTG'].some(id => document.getElementById(id).checked);
+                const anyLipidValue = document.getElementById('chol_input').value || document.getElementById('ldl_input').value || document.getElementById('tg_input').value;
+                if (lipidLabel) lipidLabel.classList.toggle('highlight-legend', anyLipidChecked || !!anyLipidValue);
+            }
+            if (checkbox.id === 'ekg_abn' || checkbox.id === 'ht') {
+                const cardioLabel = document.querySelector('label[for="cardio"]');
+                const anyCardioChecked = ['ekg_abn', 'ht'].some(id => document.getElementById(id).checked);
+                if (cardioLabel) cardioLabel.classList.toggle('highlight-legend', anyCardioChecked);
+            }
+
+            legend.classList.toggle('highlight-legend', anyChecked);
+        }
+
+        function copyText(id) {
+            const ta = document.getElementById(id);
+            ta.select();
+            document.execCommand('copy');
+        }
+
+        function clearForm() {
+            const noChecked = document.getElementById('No').checked;
+            document.getElementById('medicalForm').reset();
+            document.getElementById('No').checked = noChecked;
+            document.body.classList.toggle('no-exam', noChecked);
+            document.querySelectorAll('legend').forEach(l => l.classList.remove('highlight-legend'));
+            document.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.id !== 'No') {
+                    input.style.backgroundColor = '';
+                }
+            });
+            updateLegendBackground();
+            updateTextareas();
+        }
+
+        // ===== Input listeners (สีเหลืองบนช่องมีค่า + auto-check) =====
+        ;['sugar_input', 'chol_input', 'ldl_input', 'tg_input', 'uric_input', 'hb_input', 'hct_input', 'hba1c_input'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', function () {
+                this.style.backgroundColor = this.value ? 'yellow' : '';
+                updateLegendBackground();
+                updateTextareas();
+            });
+        });
+
+        function updateLegendBackground() {
+            // Sugar legend
+            let sugarLegend = null;
+            document.querySelectorAll('fieldset > legend').forEach(lg => {
+                if (lg.textContent && lg.textContent.toLowerCase().includes('sugar')) sugarLegend = lg;
+            });
+            if (sugarLegend) sugarLegend.classList.toggle('highlight-legend', !!document.getElementById('sugar_input').value);
+            // Lipid label
+            const lipidLabel = document.querySelector('label[for="lipid"]');
+            if (lipidLabel) {
+                const anyVal = document.getElementById('chol_input').value || document.getElementById('ldl_input').value || document.getElementById('tg_input').value;
+                lipidLabel.classList.toggle('highlight-legend', !!anyVal);
+            }
+            // Uric label
+            const uricLabel = document.querySelector('label[for="Uric"]');
+            if (uricLabel) uricLabel.classList.toggle('highlight-legend', !!document.getElementById('uric_input').value || document.getElementById('hyper_uric').checked);
+        }
+
+        // Auto-check IFG/DM จากน้ำตาล
+        document.getElementById('sugar_input').addEventListener('input', function () {
+            const sugar = parseFloat(this.value);
+            const ifg = document.getElementById('ifg');
+            const dm = document.getElementById('dm');
+            if (sugar > 100 && sugar < 126) { ifg.checked = true; dm.checked = false; }
+            else if (sugar >= 126) { ifg.checked = false; dm.checked = true; }
+            else { ifg.checked = false; dm.checked = false; }
+            updateTextareas(); updateLegendBackground();
+        });
+
+        // Auto-check hyper_uric เมื่อกรอกค่า
+        document.getElementById('uric_input').addEventListener('input', function () {
+            const hasVal = this.value !== '' && !isNaN(parseFloat(this.value));
+            document.getElementById('hyper_uric').checked = hasVal;
+            updateTextareas(); updateLegendBackground();
+        });
+
+        // LDL ranges
+        // Unified Lipid Auto-check
+        function updateLipidCheckboxes() {
+            const ldl = parseFloat(document.getElementById('ldl_input').value);
+            const chol = parseFloat(document.getElementById('chol_input').value);
+            const cholLDL130_190 = document.getElementById('high_LDL');
+            const cholLDLAbove190 = document.getElementById('hyper_LDL');
+
+            // Reset first
+            cholLDL130_190.checked = false;
+            cholLDLAbove190.checked = false;
+
+            if (!isNaN(ldl)) {
+                // LDL Priority
+                if (ldl > 130 && ldl <= 190) { cholLDL130_190.checked = true; }
+                else if (ldl > 190) { cholLDLAbove190.checked = true; }
+            } else if (!isNaN(chol)) {
+                // Chol Fallback (only if LDL is empty/NaN)
+                if (chol >= 200 && chol <= 239) { cholLDL130_190.checked = true; }
+                else if (chol > 239) { cholLDLAbove190.checked = true; }
+            }
+            updateTextareas(); updateLegendBackground();
+        }
+
+        document.getElementById('ldl_input').addEventListener('input', updateLipidCheckboxes);
+        document.getElementById('chol_input').addEventListener('input', updateLipidCheckboxes);
+
+        // TG ranges
+        document.getElementById('tg_input').addEventListener('input', function () {
+            const tg = parseFloat(this.value);
+            const tg150_450 = document.getElementById('moderate_HTG');
+            const tgAbove500 = document.getElementById('severe_HTG');
+            if (tg > 150 && tg < 450) { tg150_450.checked = true; tgAbove500.checked = false; }
+            else if (tg > 450) { tg150_450.checked = false; tgAbove500.checked = true; }
+            else { tg150_450.checked = false; tgAbove500.checked = false; }
+            updateTextareas(); updateLegendBackground();
+        });
+
+        // Auto-check Anemia (Hb & Hct)
+        function updateAnemiaCheck() {
+            const hbVal = parseFloat(document.getElementById('hb_input').value);
+            const hctVal = parseFloat(document.getElementById('hct_input').value);
+            const anemia = document.getElementById('anemia');
+            
+            let shouldCheck = false;
+            if (!isNaN(hbVal) && hbVal < 12) {
+                shouldCheck = true;
+            }
+            if (!isNaN(hctVal)) {
+                shouldCheck = true;
+            }
+            
+            anemia.checked = shouldCheck;
+            updateTextareas();
+            updateLegendStyle(anemia);
+        }
+        document.getElementById('hb_input').addEventListener('input', updateAnemiaCheck);
+        document.getElementById('hct_input').addEventListener('input', updateAnemiaCheck);
+
+        // WBC Auto-check
+        document.getElementById('wbc_input').addEventListener('input', function () {
+            const val = parseFloat(this.value);
+            const low = document.getElementById('low_wbc');
+            const high = document.getElementById('high_wbc');
+            if (!isNaN(val)) {
+                if (val < 4500) { low.checked = true; high.checked = false; }
+                else if (val > 11000) { high.checked = true; low.checked = false; }
+                else { low.checked = false; high.checked = false; }
+            } else {
+                low.checked = false; high.checked = false;
+            }
+            updateTextareas();
+        });
+
+        // PLT Auto-check
+        document.getElementById('plt_input').addEventListener('input', function () {
+            const val = parseFloat(this.value);
+            const low = document.getElementById('low_plt');
+            const high = document.getElementById('high_plt');
+            if (!isNaN(val)) {
+                // Input 140 means 140,000. Thresholds: <140 (140k) and >450 (450k)
+                if (val < 140) { low.checked = true; high.checked = false; }
+                else if (val > 450) { high.checked = true; low.checked = false; }
+                else { low.checked = false; high.checked = false; }
+            } else {
+                low.checked = false; high.checked = false;
+            }
+            updateTextareas();
+        });
+
+        // Kidney Auto-check
+        function updateKidneyCheck() {
+            // No auto-check for kidney checkbox as requested
+            /*
+            const bun = parseFloat(document.getElementById('bun_input').value);
+            const cr = parseFloat(document.getElementById('cr_input').value);
+            const gfr = parseFloat(document.getElementById('gfr_input').value);
+            const highBunCr = document.getElementById('high_BUN_Cr');
+
+            if ((!isNaN(bun) && bun > 24) || (!isNaN(cr) && cr > 1.2) || (!isNaN(gfr) && gfr < 60)) {
+                highBunCr.checked = true;
+            } else {
+                // Don't uncheck automatically if user manually checked it? 
+                // But for auto-logic consistency, we usually uncheck.
+                // However, GFR 61-89 logic doesn't use this checkbox.
+                highBunCr.checked = false;
+            }
+            */
+            updateTextareas();
+        }
+        ['bun_input', 'cr_input', 'gfr_input'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateKidneyCheck);
+            // Also add yellow highlight listener
+            document.getElementById(id).addEventListener('input', function () {
+                this.style.backgroundColor = this.value ? 'yellow' : '';
+            });
+        });
+        // Also add yellow highlight for new inputs
+        ['wbc_input', 'plt_input', 'age_input'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function () {
+                this.style.backgroundColor = this.value ? 'yellow' : '';
+            });
+        });
+
+        // Age input listener
+        document.getElementById('age_input').addEventListener('input', function () {
+            updateTextareas();
+        });
+
+        // AST/ALT/GGT Auto-check & Highlight
+        ['ast_input', 'alt_input', 'ggt_input'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function () {
+                const val = this.value;
+                let checkboxId = '';
+                if (id === 'ast_input') checkboxId = 'high_ast';
+                else if (id === 'alt_input') checkboxId = 'high_alt';
+                else if (id === 'ggt_input') checkboxId = 'high_ggt';
+                const checkbox = document.getElementById(checkboxId);
+
+                if (val && !isNaN(parseFloat(val))) {
+                    checkbox.checked = true;
+                    this.style.backgroundColor = 'yellow';
+                } else {
+                    checkbox.checked = false;
+                    this.style.backgroundColor = '';
+                }
+                updateLegendStyle(checkbox);
+                updateTextareas();
+            });
+        });
+
+        // Vitamin D Auto-check & Highlight
+        document.getElementById('vitd_input').addEventListener('input', function () {
+            const val = parseFloat(this.value);
+            const checkbox = document.getElementById('low_vitD');
+
+            if (!isNaN(val) && val < 20) {
+                checkbox.checked = true;
+                this.style.backgroundColor = 'yellow';
+            } else {
+                checkbox.checked = false;
+                this.style.backgroundColor = this.value ? 'yellow' : '';
+            }
+            updateLegendStyle(checkbox);
+            updateTextareas();
+        });
+
+        // HT Auto-check & Highlight
+        document.getElementById('ht_input').addEventListener('input', function () {
+            const val = this.value.trim();
+            const checkbox = document.getElementById('ht');
+            
+            if (val) {
+                this.style.backgroundColor = 'yellow';
+                // Try to parse SBP and DBP
+                const parts = val.split(/[\/\s\-]+/);
+                const sbp = parseFloat(parts[0]);
+                const dbp = parseFloat(parts[1]);
+                let shouldCheck = false;
+                if (!isNaN(sbp) && sbp >= 140) shouldCheck = true;
+                if (!isNaN(dbp) && dbp >= 90) shouldCheck = true;
+                
+                checkbox.checked = shouldCheck;
+            } else {
+                checkbox.checked = false;
+                this.style.backgroundColor = '';
+            }
+            updateLegendStyle(checkbox);
+            updateTextareas();
+        });
+
+        // Gender Select change listener
+        document.getElementById('gender_select').addEventListener('change', function () {
+            updateTextareas();
+        });
+
+        // EKG Type Select change listener
+        document.getElementById('ekg_type').addEventListener('change', function () {
+            updateTextareas();
+        });
+
+        // ===== Initial =====
+        updateTextareas();
+        updateLegendBackground();
+
+        // ============================
+        // หน้า “สรุปผล (กราฟ)” เปิดหน้าต่างใหม่
+        // ============================
+        function getHealthStatus(value, type) {
+            const criteria = {
+                bs: { green: 100, yellow: 125 },
+                chol: { green: 200, yellow: 239 },
+                ldl: { green: 130, yellow: 189 },
+                tg: { green: 150, yellow: 450 }
+            };
+            if (type === 'ht' || type === 'overweight') return 'red';
+            const c = criteria[type];
+            if (!c || isNaN(value)) return null;
+            if (value <= c.green) return 'green';
+            if (value <= c.yellow) return 'yellow';
+            return 'red';
+        }
+
+        function getStatusInfo(status) {
+            const info = {
+                green: { colorBg: '#dcfce7', colorBorder: '#86efac', colorText: '#166534', icon: '✅', text: 'ปกติ', gradient: ['#22c55e', '#16a34a'] },
+                yellow: { colorBg: '#fef9c3', colorBorder: '#fde68a', colorText: '#854d0e', icon: '⚠️', text: 'ควรระวัง', gradient: ['#f59e0b', '#ea580c'] },
+                red: { colorBg: '#fee2e2', colorBorder: '#fecaca', colorText: '#991b1b', icon: '🚨', text: 'ต้องรักษา', gradient: ['#ef4444', '#dc2626'] }
+            };
+            return info[status];
+        }
+
+        function generateRecommendations(results) {
+            const redItems = results.filter(r => r.status === 'red');
+            const yellowItems = results.filter(r => r.status === 'yellow');
+            const R = { red: [], yellow: [], general: [] };
+            if (redItems.length) {
+                R.red.push({ icon: '👨‍⚕️', title: 'พบแพทย์เพื่อรับการรักษา', description: 'คุณมีค่าที่อยู่ในเกณฑ์ต้องรักษา ควรพบแพทย์โดยเร็วเพื่อรับการรักษาที่เหมาะสม' });
+                if (redItems.some(r => r.name.includes('น้ำตาล'))) R.red.push({ icon: '💊', title: 'ควบคุมน้ำตาลในเลือดเข้มงวด', description: 'ติดตามน้ำตาลในเลือดอย่างใกล้ชิด อาจต้องใช้ยาควบคุม' });
+                if (redItems.some(r => r.name.includes('คอเลสเตอรอล') || r.name.includes('LDL'))) R.red.push({ icon: '🩺', title: 'รักษาคอเลสเตอรอลสูง', description: 'อาจพิจารณายาลดไขมันตามคำแนะนำแพทย์' });
+                if (redItems.some(r => r.name.includes('ความดัน'))) R.red.push({ icon: '💓', title: 'ควบคุมความดันโลหิต', description: 'จำกัดโซเดียม วัดความดันสม่ำเสมอ และพบแพทย์' });
+            }
+            if (yellowItems.length) {
+                R.yellow.push({ icon: '🍎', title: 'ปรับเปลี่ยนการกินอาหาร', description: 'ลดหวาน มัน เค็ม เพิ่มผัก ผลไม้ และธัญพืชเต็มเมล็ด' });
+                R.yellow.push({ icon: '🏃‍♀️', title: 'เพิ่มการออกกำลังกาย', description: 'ออกกำลังกายอย่างน้อย 150 นาที/สัปดาห์' });
+            }
+            R.general.push(
+                { icon: '🥗', title: 'อาหารสุขภาพ', description: 'โปรตีนไม่ติดมัน ผัก ผลไม้ ลดน้ำตาลและเกลือ' },
+                { icon: '💧', title: 'ดื่มน้ำพอเพียง', description: '8–10 แก้ว/วัน เลี่ยงน้ำหวานและแอลกอฮอล์' },
+                { icon: '😴', title: 'พักผ่อนเพียงพอ', description: 'นอน 7–8 ชั่วโมงต่อวัน จัดการความเครียด' },
+                { icon: '📅', title: 'ตรวจสุขภาพสม่ำเสมอ', description: 'ติดตามค่าต่างๆ เพื่อป้องกันและรักษาแต่เนิ่นๆ' }
+            );
+            return R;
+        }
+
+        function openSummary() {
+            try {
+                const bs = parseFloat(document.getElementById('sugar_input')?.value);
+                const chol = parseFloat(document.getElementById('chol_input')?.value);
+                const ldl = parseFloat(document.getElementById('ldl_input')?.value);
+                const tg = parseFloat(document.getElementById('tg_input')?.value);
+                const ht = !!document.getElementById('ht')?.checked;
+                const ob = !!document.getElementById('OB')?.checked;
+
+                const results = [];
+                if (!isNaN(bs)) results.push({ name: 'น้ำตาลในเลือด', value: bs, unit: 'mg/dL', status: getHealthStatus(bs, 'bs'), icon: '🍯' });
+                if (!isNaN(chol)) results.push({ name: 'คอเลสเตอรอล', value: chol, unit: 'mg/dL', status: getHealthStatus(chol, 'chol'), icon: '🧈' });
+                if (!isNaN(ldl)) results.push({ name: 'LDL-C', value: ldl, unit: 'mg/dL', status: getHealthStatus(ldl, 'ldl'), icon: '🔬' });
+                if (!isNaN(tg)) results.push({ name: 'ไตรกลีเซอไรด์', value: tg, unit: 'mg/dL', status: getHealthStatus(tg, 'tg'), icon: '🧪' });
+                if (ht) results.push({ name: 'ความดันโลหิต', value: 'ต้องรักษา', unit: '', status: 'red', icon: '💓' });
+                if (ob) results.push({ name: 'น้ำหนักเกิน', value: 'ต้องรักษา', unit: '', status: 'red', icon: '📏' });
+
+                if (!results.length) {
+                    alert('ยังไม่มีข้อมูลสำหรับกราฟ (ต้องมีค่า Sugar, Chol, LDL, TG หรือเลือก HT, น้ำหนักเกิน)');
+                    return;
+                }
+
+                const redCount = results.filter(r => r.status === 'red').length;
+                const yellowCount = results.filter(r => r.status === 'yellow').length;
+                const overallStatus = redCount ? 'red' : (yellowCount ? 'yellow' : 'green');
+                const overallInfo = getStatusInfo(overallStatus);
+                const nowTH = new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+
+                const win = window.open('', '_blank');
+                if (!win) { alert('กรุณาอนุญาตป๊อปอัปสำหรับหน้านี้'); return; }
+
+                const css = `
+        :root{--bg:#f6f7fb; --card:#ffffff; --ink:#0f172a; --line:#e5e7eb}
+        *{box-sizing:border-box} body{margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Thai',sans-serif; color:var(--ink); background:var(--bg)}
+        .container{max-width:1100px; margin:24px auto; padding:16px}
+        .grid{display:grid; gap:16px}
+        @media(min-width:768px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+        @media(min-width:1024px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+        .card{border:2px solid; border-radius:14px; padding:16px; text-align:center}
+        .badge{display:inline-flex; padding:4px 10px; border-radius:999px; border:2px solid}
+        .pulse{animation:pulse 1.8s ease-in-out infinite}
+        @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+      `;
+
+                const cardHTML = results.map(r => {
+                    const s = getStatusInfo(r.status || 'green');
+                    return `
+          <div class="card" style="border-color:${s.colorBorder}; background:${s.colorBg}; color:${s.colorText}">
+            <div style="font-size:34px; margin-bottom:8px">${r.icon}</div>
+            <h3 style="margin:0 0 6px; color:#1f2937">${r.name}</h3>
+            <div style="font-size:22px; font-weight:800; color:#0f172a; margin-bottom:6px">${r.value ?? '—'} ${r.unit ?? ''}</div>
+            <div class="badge" style="background:${s.colorBg}; border-color:${s.colorBorder}; color:${s.colorText}; font-weight:700">${s.icon} ${s.text}</div>
+          </div>
+        `;
+                }).join('');
+
+                const overallHTML = `
+        <div style="padding:18px; border-radius:14px; color:white; background:linear-gradient(90deg, ${overallInfo.gradient[0]}, ${overallInfo.gradient[1]})">
+          <div class="pulse" style="font-size:42px; margin-bottom:6px">${overallInfo.icon}</div>
+          <div style="font-size:20px; font-weight:800; margin-bottom:4px">สถานะสุขภาพโดยรวม: ${overallInfo.text}</div>
+          <div style="opacity:.9">จากการตรวจ ${results.length} รายการ • อัปเดต: ${nowTH}</div>
+        </div>
+      `;
+
+                const rec = generateRecommendations(results);
+                const block = (title, color, items) => items.length ? `
+        <div style="background:${color.bg}; border:2px solid ${color.bd}; border-radius:14px; padding:16px">
+          <h3 style="margin:0 0 10px; color:${color.text}">${title}</h3>
+          ${items.map(x => `
+            <div style="display:flex; gap:10px; align-items:flex-start; background:#fff; border-left:4px solid ${color.left}; padding:10px; border-radius:10px; margin-bottom:10px">
+              <div style="font-size:22px">${x.icon}</div>
+              <div>
+                <div style="font-weight:700; color:#1f2937">${x.title}</div>
+                <div style="opacity:.85; color:#1f2937">${x.description}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>` : '';
+
+                const redBlock = block('🚨 ปรึกษาแพทย์ทันที', { bg: '#fef2f2', bd: '#fecaca', text: '#991b1b', left: '#ef4444' }, rec.red);
+                const yellowBlock = block('⚠️ ปรับเปลี่ยนพฤติกรรม', { bg: '#fffbeb', bd: '#fde68a', text: '#854d0e', left: '#f59e0b' }, rec.yellow);
+                const generalBlock = block('💡 คำแนะนำทั่วไป', { bg: '#eff6ff', bd: '#bfdbfe', text: '#1e3a8a', left: '#3b82f6' }, rec.general);
+
+                const html = `
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>สรุปผลตรวจสุขภาพ</title><style>${css}</style></head>
+<body>
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+      <h2 style="margin:0">🔍 วิเคราะห์สุขภาพ</h2>
+      <div style="display:flex; gap:8px">
+        <button onclick="window.close()" style="padding:8px 12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:700">ปิด</button>
+        <button onclick="window.print()" style="padding:8px 12px; border-radius:10px; border:1px solid transparent; background:#2563eb; color:#fff; cursor:pointer; font-weight:700">พิมพ์ / PDF</button>
+      </div>
+    </div>
+
+    <div style="border:1px solid #e5e7eb; border-radius:16px; background:#fff; padding:18px">
+      <h3 style="margin-top:0">📊 ผลการวิเคราะห์</h3>
+      <div class="grid" style="margin-bottom:16px">${cardHTML}</div>
+      ${overallHTML}
+      <div style="display:grid; gap:14px; margin-top:16px">
+        ${redBlock}${yellowBlock}${generalBlock}
+      </div>
+    </div>
+  </div>
+</body></html>`;
+                win.document.open(); win.document.write(html); win.document.close();
+            } catch (e) {
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+
+</html>
