@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมแปลผลแมมโมแกรม | Breast Mammogram & Ultrasound Report Interpreter</title>
+    <meta name="description" content="ระบบแปลผลและสรุปรายงานผลตรวจ Breast Mammogram and Ultrasound เฉพาะเต้านมตามเกณฑ์มาตรฐาน BI-RADS">
+    <!-- Google Fonts: Sarabun & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e11d48;
+            --primary-dark: #be123c;
+            --primary-light: #ffe4e6;
+            --primary-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+            --header-gradient: linear-gradient(135deg, #881337 0%, #be123c 50%, #e11d48 100%);
+            --bg: #fff1f2;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #fecdd3;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 25px -5px rgba(225, 29, 72, 0.1);
+            --shadow-hover: 0 20px 35px -5px rgba(225, 29, 72, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', 'Outfit', sans-serif;
+            background-color: #fdf2f4;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(225, 29, 72, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.06) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px 16px 60px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #334155;
+            font-size: 0.88rem;
+            font-weight: 600;
+            background: #ffffff;
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateX(-2px);
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffe4e6;
+            color: #be123c;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            border: 1px solid #fecdd3;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+            font-weight: 800;
+            color: #881337;
+            letter-spacing: -0.01em;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 1.02rem;
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* Layout Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 860px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1.5px solid #f1f5f9;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* Presets Bar */
+        .presets-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .presets-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .preset-btn:hover {
+            background: #e11d48;
+            color: #ffffff;
+            border-color: #e11d48;
+            transform: translateY(-1px);
+        }
+
+        /* Textarea Input */
+        .textarea-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 240px;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            border: 1.5px solid #cbd5e1;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #0f172a;
+            background: #f8fafc;
+            resize: vertical;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+        }
+
+        /* Actions */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-parse {
+            flex-grow: 1;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.98rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
+        }
+
+        .btn-parse:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+        }
+
+        .btn-clear {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-clear:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .btn-paste {
+            background: #ffffff;
+            color: #be123c;
+            border: 1.5px solid #f43f5e;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(225, 29, 72, 0.1);
+        }
+
+        .btn-paste:hover {
+            background: #fff1f2;
+            border-color: #e11d48;
+            color: #9f1239;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);
+        }
+
+        /* Output Box */
+        .output-box {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 18px;
+            min-height: 290px;
+            font-family: 'Sarabun', Tahoma, sans-serif;
+            font-size: 0.93rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            color: #0f172a;
+            position: relative;
+            user-select: text;
+        }
+
+        .empty-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 240px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .empty-placeholder i {
+            font-size: 2.8rem;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+        }
+
+        /* Badges for Quick Review */
+        .detected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .tag-calc { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .tag-cyst { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .tag-mass { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .tag-normal { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .tag-birads { background: #881337; color: #ffffff; }
+
+        /* Copy Button */
+        .btn-copy {
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: #334155;
+            transform: translateY(-1px);
+        }
+
+        .btn-copy.copied {
+            background: #059669;
+        }
+
+        /* Notice rules box */
+        .rules-card {
+            margin-top: 28px;
+            background: #ffffff;
+            border: 1px solid #fecdd3;
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .rules-title {
+            font-weight: 800;
+            color: #881337;
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rules-list {
+            padding-left: 20px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .rules-list li {
+            margin-bottom: 6px;
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Top Navigation -->
+        <div class="top-bar">
+            <a href="all.html" class="nav-link">
+                <i class="fa-solid fa-arrow-left"></i> กลับหน้าระบบตรวจสุขภาพ (all.html)
+            </a>
+            <div style="font-size: 0.82rem; font-weight: 600; color: #be123c;">
+                <i class="fa-solid fa-ribbon mr-1"></i> Breast Imaging Reporting System
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header>
+            <div class="header-badge">
+                <i class="fa-solid fa-file-medical"></i> ระบบแปลผลเฉพาะเต้านมตามเกณฑ์
+            </div>
+            <h1>โปรแกรมสรุปผลตรวจ Breast Mammogram & Ultrasound</h1>
+            <p class="subtitle">ระบบวิเคราะห์และคัดกรองเฉพาะ <strong>Calcification (หินปูน), Cyst (ถุงน้ำ), Mass (ก้อนเนื้อ)</strong> และ <strong>BI-RADS</strong> แปลผลสรุปตาม Pattern มาตรฐานโดยอัตโนมัติ</p>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <div class="main-grid">
+
+            <!-- Left Panel: Raw Input -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>วางข้อความผลตรวจภาษาอังกฤษ</span>
+                    </div>
+                </div>
+
+                <!-- Presets -->
+                <div class="presets-label">
+                    <i class="fa-solid fa-flask"></i> ตัวอย่างรายงานผลตรวจสำหรับทดสอบ:
+                </div>
+                <div class="presets-container">
+                    <button class="preset-btn" onclick="loadSample(1)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 1: BI-RADS 3 (Cyst + หินปูน)
+                    </button>
+                    <button class="preset-btn" onclick="loadSample(2)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 2: BI-RADS 1 (ผลตรวจปกติ)
+                    </button>
+                    <button class="preset-btn" onclick="loadSample(3)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 3: BI-RADS 4 (พบก้อน Mass)
+                    </button>
+                    <button class="preset-btn" onclick="loadSample(4)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 4: BI-RADS 2 (Benign Cyst ทั้งสองข้าง)
+                    </button>
+                </div>
+
+                <div class="textarea-wrapper">
+                    <textarea id="rawInput" placeholder="วางข้อความผลตรวจ Mammogram & Breast Ultrasound ภาษาอังกฤษที่นี่... (ระบบจะคัดกรองเฉพาะเต้านมตามเกณฑ์เท่านั้น)"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-paste" onclick="pasteFromClipboard()" title="วางข้อความที่คัดลอกไว้จากที่อื่นลงในช่องนี้ทันที">
+                        <i class="fa-solid fa-paste"></i> วางข้อความที่คัดลอกมา
+                    </button>
+                    <button class="btn-parse" onclick="processMammogram()">
+                        <i class="fa-solid fa-bolt"></i> สรุปผลตรวจตาม Pattern ทันที
+                    </button>
+                    <button class="btn-clear" onclick="clearInput()" title="ล้างข้อความ">
+                        <i class="fa-solid fa-trash-can"></i> ล้าง
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Formatted Output -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>ข้อความผลสรุปตาม Pattern</span>
+                    </div>
+                    <button id="copyBtn" class="btn-copy" onclick="copyResult()" style="display: none;">
+                        <i class="fa-solid fa-copy"></i> คัดลอกผลสรุป
+                    </button>
+                </div>
+
+                <!-- Detected Tags Bar -->
+                <div id="tagsBar" class="detected-tags" style="display: none;"></div>
+
+                <!-- Formatted Text Area -->
+                <div id="outputArea" class="output-box">
+                    <div class="empty-placeholder">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <p style="font-weight: 600; color: #64748b; margin-bottom: 4px;">ยังไม่มีการประมวลผล</p>
+                        <p style="font-size: 0.82rem;">กรุณาวางผลตรวจทางด้านซ้าย หรือคลิกตัวอย่าง แล้วกดปุ่ม <strong>"สรุปผลตรวจตาม Pattern"</strong></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Rules & Logic Explanation Card -->
+        <div class="rules-card">
+            <div class="rules-title">
+                <i class="fa-solid fa-shield-halved"></i> กฎการคัดกรองเฉพาะเต้านม (Strict Filter Logic):
+            </div>
+            <ul class="rules-list">
+                <li><strong>สแกนเฉพาะ 3 รอยโรคหลัก:</strong> หินปูน (Calcification), ถุงน้ำ (Cyst), ก้อนเนื้อ (Mass / Nodule / Lesion)</li>
+                <li><strong>ระบุข้างอัตโนมัติ:</strong> วิเคราะห์ตำแหน่งระบุ เต้านมซ้าย, เต้านมขวา หรือ เต้านมทั้งสองข้าง จากบริบทของข้อความ</li>
+                <li><strong>ดึงขนาดของก้อนเนื้อ (ถ้ามี):</strong> ตรวจจับขนาดเส้นผ่านศูนย์กลาง (เช่น 0.8 cm, 1.2 x 0.9 cm) มาแสดงอัตโนมัติ</li>
+                <li><strong>ตัดสิ่งที่ไม่เกี่ยวข้องออกทั้งหมด:</strong> ความหนาแน่นของเนื้อเต้านม (Fibroglandular density), ต่อมน้ำเหลืองรักแร้ (Axillary lymph nodes), ผิวหนัง หรืออวัยวะอื่นที่ปนมา จะไม่ถูกนำมารายงานผล</li>
+                <li><strong>จับคู่คำแนะนำตามระดับ BI-RADS:</strong> แสดงคำแนะนำภาษาไทยและภาษาอังกฤษ {{EN_RECOMMENDATION}} ทางการแพทย์ที่ตรงตามระดับความเสี่ยง 1, 2, 3, 4, 5</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">คัดลอกผลสรุปเรียบร้อยแล้ว!</span>
+    </div>
+
+    <script>
+        const samples = {
+            1: `DIGITAL MAMMOGRAM AND BREAST ULTRASOUND REPORT
+CLINICAL HISTORY: Annual health checkup screening.
+FINDINGS:
+Mammography shows scattered fibroglandular breast tissue.
+Right breast: Simple cyst measuring 0.8 cm at 10:00 position, without suspicious solid component.
+Left breast: A cluster of grouped punctate microcalcifications is identified in the upper outer quadrant, without associated soft tissue mass or architectural distortion.
+No suspicious nipple retraction or skin thickening. No abnormal axillary lymphadenopathy.
+IMPRESSION:
+- Grouped punctate microcalcifications, left breast.
+- Simple cyst, right breast.
+BI-RADS CATEGORY 3: Probably Benign Findings.`,
+
+            2: `BILATERAL BREAST MAMMOGRAM AND ULTRASOUND
+FINDINGS:
+The breasts are heterogeneously dense, which may obscure small masses.
+There is no evidence of suspicious grouped microcalcification, architectural distortion, or dominant mass in either breast.
+Targeted bilateral breast ultrasound demonstrates no cystic or solid mass lesion.
+Normal skin thickness and nipple contour. Bilateral axillae are unremarkable.
+IMPRESSION:
+- Negative for malignancy.
+- No abnormal findings detected.
+BI-RADS CATEGORY 1: Negative.`,
+
+            3: `MAMMOGRAM AND HIGH-RESOLUTION ULTRASOUND
+FINDINGS:
+Left breast: No focal mass or suspicious microcalcification.
+Right breast: Mammography and ultrasound demonstrate an irregular hypoechoic solid mass measuring 1.5 x 1.2 cm at 2 o'clock, 4 cm from the nipple, with indistinct margins.
+Few scattered benign vascular calcifications seen bilaterally.
+IMPRESSION:
+- Suspicious solid mass, right breast at 2 o'clock position (1.5 x 1.2 cm).
+BI-RADS CATEGORY 4: Suspicious Abnormality.`,
+
+            4: `BREAST SCREENING REPORT
+FINDINGS:
+Bilateral symmetrical fibroglandular densities.
+Ultrasound shows bilateral multiple simple cysts, measuring up to 0.7 cm on the right side and 0.5 cm on the left side. No solid mass or suspicious clustered microcalcification detected.
+IMPRESSION:
+- Bilateral multiple benign cysts.
+BI-RADS CATEGORY 2: Benign Findings.`
+        };
+
+        function loadSample(num) {
+            document.getElementById('rawInput').value = samples[num] || '';
+            processMammogram();
+        }
+
+        function clearInput() {
+            document.getElementById('rawInput').value = '';
+            document.getElementById('outputArea').innerHTML = `
+                <div class="empty-placeholder">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <p style="font-weight: 600; color: #64748b; margin-bottom: 4px;">ยังไม่มีการประมวลผล</p>
+                    <p style="font-size: 0.82rem;">กรุณาวางผลตรวจทางด้านซ้าย หรือคลิกตัวอย่าง แล้วกดปุ่ม <strong>"สรุปผลตรวจตาม Pattern"</strong></p>
+                </div>
+            `;
+            document.getElementById('tagsBar').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'none';
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                if (!navigator.clipboard || !navigator.clipboard.readText) {
+                    alert('เบราว์เซอร์ไม่รองรับการอ่านคลิปบอร์ดอัตโนมัติ กรุณากดคลิกในช่องแล้วกด Ctrl + V เพื่อวางข้อความครับ');
+                    document.getElementById('rawInput').focus();
+                    return;
+                }
+                const text = await navigator.clipboard.readText();
+                if (!text || !text.trim()) {
+                    showToast('คลิปบอร์ดว่างเปล่า กรุณาคัดลอก (Copy) ผลตรวจจากแหล่งอื่นมาก่อนครับ');
+                    return;
+                }
+                document.getElementById('rawInput').value = text;
+                showToast('วางข้อความและสรุปผลตรวจเรียบร้อยแล้ว!');
+                processMammogram();
+            } catch (err) {
+                console.warn('Clipboard read error:', err);
+                document.getElementById('rawInput').focus();
+                showToast('เบราว์เซอร์ไม่อนุญาตให้อ่านคลิปบอร์ดอัตโนมัติ กรุณากด Ctrl+V เพื่อวางครับ');
+            }
+        }
+
+        function processMammogram() {
+            const text = document.getElementById('rawInput').value;
+            if (!text.trim()) {
+                showToast('กรุณากรอกหรือวางข้อความผลตรวจก่อนครับ');
+                return;
+            }
+
+            const parsed = parseMammogramText(text);
+
+            // Render Output Text
+            document.getElementById('outputArea').innerText = parsed.outputText;
+            document.getElementById('copyBtn').style.display = 'inline-flex';
+
+            // Render Tags
+            renderTags(parsed);
+        }
+
+        function parseMammogramText(text) {
+            // Split into lines and sentences
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            
+            // Build sentence/segment list with section context
+            let segments = [];
+            let currentSideContext = ''; // 'right', 'left', 'bilateral'
+
+            for (let line of lines) {
+                // Check if line indicates side context header
+                if (/^right\s*breast/i.test(line)) {
+                    currentSideContext = 'right';
+                } else if (/^left\s*breast/i.test(line)) {
+                    currentSideContext = 'left';
+                } else if (/^bilateral\s*breast|^both\s*breast/i.test(line)) {
+                    currentSideContext = 'bilateral';
+                }
+
+                // Split line into sentences
+                let sentenceMatches = line.split(/(?<=[.!?])\s+/);
+                for (let s of sentenceMatches) {
+                    s = s.trim();
+                    if (!s) continue;
+                    segments.push({
+                        text: s,
+                        contextSide: currentSideContext
+                    });
+                }
+            }
+
+            let findings = [];
+            let itemIndex = 1;
+            let hasCalc = false, hasCyst = false, hasMass = false;
+
+            // -------------------------------------------------------------
+            // 1. Calcification Detection
+            // -------------------------------------------------------------
+            let calcSegments = segments.filter(seg => {
+                let s = seg.text;
+                if (!/calcif/i.test(s)) return false;
+                // Exclude negative phrases
+                if (/no\s+(suspicious\s+)?(micro)?calcif/i.test(s)) return false;
+                if (/without\s+(suspicious\s+)?(micro)?calcif/i.test(s)) return false;
+                if (/free\s+of\s+calcif/i.test(s)) return false;
+                if (/negative\s+for\s+(micro)?calcif/i.test(s)) return false;
+                if (/(micro)?calcif\w*\s*[:\-]?\s*(is|are)?\s*(not\s+detectable|non-?detectable|undetectable|not\s+(seen|found|identified|demonstrated|observed)|none|nil|negative|absent|unremarkable)/i.test(s)) return false;
+                return true;
+            });
+
+            if (calcSegments.length > 0) {
+                hasCalc = true;
+                let combinedText = calcSegments.map(c => c.text).join(' ');
+                let side = determineSide(calcSegments[0].contextSide, combinedText);
+                let quotes = calcSegments.map(c => c.text).join('\n');
+                findings.push(`-- สงสัยหินปูนเกาะที่เต้านม${side}\n\n${quotes}`);
+            }
+
+            // -------------------------------------------------------------
+            // 2. Cyst Detection
+            // -------------------------------------------------------------
+            let cystSegments = segments.filter(seg => {
+                let s = seg.text;
+                if (!/cyst/i.test(s)) return false;
+                // Exclude negative phrases
+                if (/no\s+(cystic|cyst)/i.test(s)) return false;
+                if (/without\s+(cystic|cyst)/i.test(s)) return false;
+                if (/free\s+of\s+cyst/i.test(s)) return false;
+                if (/negative\s+for\s+(cystic|cyst)/i.test(s)) return false;
+                if (/(cyst|cystic\s+lesion\w*)\s*[:\-]?\s*(is|are)?\s*(not\s+detectable|non-?detectable|undetectable|not\s+(seen|found|identified|demonstrated|observed)|none|nil|negative|absent|unremarkable)/i.test(s)) return false;
+                return true;
+            });
+
+            if (cystSegments.length > 0) {
+                hasCyst = true;
+                let combinedText = cystSegments.map(c => c.text).join(' ');
+                let side = determineSide(cystSegments[0].contextSide, combinedText);
+                let quotes = cystSegments.map(c => c.text).join('\n');
+                findings.push(`--สงสัยถุงน้ำ (cyst) ที่เต้านม${side}\n\n${quotes}`);
+            }
+
+            // -------------------------------------------------------------
+            // 3. Mass / Nodule Detection
+            // -------------------------------------------------------------
+            let massSegments = segments.filter(seg => {
+                let s = seg.text;
+                let cleaned = s.replace(/non-?mass(\s+lesion)?/gi, '');
+                if (!/\b(mass|nodule|solid\s+lesion)\b/i.test(cleaned)) return false;
+                // Exclude negative phrases
+                if (/no\s+(evidence\s+of\s+)?(focal\s+|suspicious\s+|dominant\s+|solid\s+|cystic\s+or\s+solid\s+)?(mass|nodule)/i.test(s)) return false;
+                if (/without\s+(suspicious\s+|associated\s+)?(soft\s+tissue\s+)?(mass|nodule)/i.test(s)) return false;
+                if (/free\s+of\s+mass/i.test(s)) return false;
+                if (/negative\s+for\s+(focal\s+|suspicious\s+|dominant\s+|solid\s+)?(mass|nodule)/i.test(s)) return false;
+                if (/(mass|nodule|solid\s+lesion)\s*[:\-]?\s*(is|are)?\s*(not\s+detectable|non-?detectable|undetectable|not\s+(seen|found|identified|demonstrated|observed)|none|nil|negative|absent|unremarkable)/i.test(s)) return false;
+                if (/(not\s+detectable|non-?detectable|undetectable|not\s+seen)\s*[:\-]?\s*(mass|nodule)/i.test(s)) return false;
+                // Exclude pure simple cyst descriptions
+                if (/simple\s+cyst/i.test(s) && !/(solid\s+mass|hypoechoic\s+mass)/i.test(s)) return false;
+                return true;
+            });
+
+            if (massSegments.length > 0) {
+                hasMass = true;
+                let combinedText = massSegments.map(c => c.text).join(' ');
+                let side = determineSide(massSegments[0].contextSide, combinedText);
+                
+                // Extract size
+                let sizeMatch = combinedText.match(/(\d+(\.\d+)?\s*(x\s*\d+(\.\d+)?(\s*x\s*\d+(\.\d+)?)?)?\s*(cm|mm))/i);
+                let sizeStr = sizeMatch ? ` ขนาดประมาณ ${sizeMatch[0]}` : '';
+                
+                let quotes = massSegments.map(c => c.text).join('\n');
+                findings.push(`--สงสัยก้อนที่เต้านม${side}${sizeStr}\n\n${quotes}`);
+            }
+
+            // -------------------------------------------------------------
+            // 4. BI-RADS Category Detection
+            // -------------------------------------------------------------
+            let biradsNum = '2'; // Default
+            let biradsRegex = /BI-?RADS\s*(CATEGORY|CAT|Assessment)?\s*[:\-]?\s*([0-6][ABC]?)/i;
+            let match = text.match(biradsRegex);
+            if (match) {
+                biradsNum = match[2].toUpperCase();
+            } else {
+                // Secondary check for "Category X"
+                let catMatch = text.match(/CATEGORY\s*[:\-]?\s*([0-6][ABC]?)/i);
+                if (catMatch) {
+                    biradsNum = catMatch[1].toUpperCase();
+                } else if (!hasCalc && !hasCyst && !hasMass) {
+                    biradsNum = '1';
+                }
+            }
+
+            // -------------------------------------------------------------
+            // 5. Recommendations based on BI-RADS
+            // -------------------------------------------------------------
+            let recTH = [];
+            let recEN = '';
+
+            if (biradsNum.startsWith('1')) {
+                recTH.push('- ไม่พบความผิดปกติ แนะนำตรวจคัดกรองตามระยะ');
+                recTH.push('- ตรวจเต้านมด้วยตนเองเป็นประจำ และตรวจคัดกรองแมมโมแกรมทุกปี');
+                recEN = 'Routine screening mammography recommended. Regular breast self-examination.';
+            } else if (biradsNum.startsWith('2')) {
+                recTH.push('- แนะนำตรวจติดตามกับแพทย์ศัลยกรรมเต้านม');
+                recTH.push('- ตรวจเต้านมด้วยตนเองเป็นประจำ และตรวจคัดกรองแมมโมแกรมทุกปี');
+                recEN = 'Routine annual screening mammography and regular breast self-examination recommended. Follow-up with a breast specialist if indicated.';
+            } else if (biradsNum.startsWith('3')) {
+                recTH.push('- แนะนำพบแพทย์เฉพาะทางศัลยกรรมเต้านม เพื่อตรวจเพิ่มเติม');
+                recTH.push('- แนะนำติดตามผลซ้ำภายใน 6 เดือน');
+                recEN = 'Short-interval follow-up mammography/ultrasound in 6 months. Consultation with a breast surgeon is recommended.';
+            } else if (['4', '5'].some(n => biradsNum.startsWith(n))) {
+                recTH.push('- แนะนำรีบพบแพทย์ศัลยกรรมเต้านมเพื่อตรวจเพิ่มเติมอย่างละเอียด');
+                recEN = 'Prompt consultation with a breast specialist for tissue diagnosis / biopsy is strongly recommended.';
+            } else if (biradsNum.startsWith('0')) {
+                recTH.push('- แนะนำตรวจเพิ่มเติมด้วยภาพถ่ายทางรังสีหรืออัลตราซาวด์เพิ่มเติม');
+                recEN = 'Additional imaging evaluation and/or prior mammograms for comparison are required.';
+            } else {
+                recTH.push('- แนะนำปรึกษาแพทย์เฉพาะทางศัลยกรรมเต้านม');
+                recEN = 'Consultation with a breast specialist is recommended.';
+            }
+
+            // -------------------------------------------------------------
+            // 6. Build Final Formatted String
+            // -------------------------------------------------------------
+            let out = `ผลตรวจแมมโมแกรม และอัลตราซาวน์เต้านม\n\n`;
+            out += `สงสัยพบความผิดปกติ:\n\n`;
+
+            if (findings.length > 0) {
+                out += findings.join('\n\n') + '\n\n';
+            } else {
+                out += `- ไม่พบความผิดปกติ\n\nNo abnormal findings detected\n\n`;
+            }
+
+            out += `--------------------------------------------------------------------------------\n\n`;
+            out += `จัดอยู่ในกลุ่ม BI-RADS ${biradsNum}\n\n`;
+            out += `--------------------------------------------------------------------------------\n\n`;
+            out += `คำแนะนำ:\n\n`;
+            out += recTH.join('\n\n') + '\n\n';
+            out += recEN;
+
+            return {
+                outputText: out,
+                biradsNum,
+                hasCalc,
+                hasCyst,
+                hasMass,
+                isNormal: (findings.length === 0)
+            };
+        }
+
+        function determineSide(contextSide, text) {
+            let t = text.toLowerCase();
+            let isBilateral = /bilateral|both\s*breast|both\s*side/i.test(t);
+            let hasRight = /right/i.test(t);
+            let hasLeft = /left/i.test(t);
+
+            if (isBilateral || (hasRight && hasLeft)) {
+                return 'ทั้งสองข้าง';
+            }
+            if (hasLeft) return 'ซ้าย';
+            if (hasRight) return 'ขวา';
+
+            // Fallback to section header context
+            if (contextSide === 'bilateral') return 'ทั้งสองข้าง';
+            if (contextSide === 'left') return 'ซ้าย';
+            if (contextSide === 'right') return 'ขวา';
+
+            return '';
+        }
+
+        function renderTags(parsed) {
+            const bar = document.getElementById('tagsBar');
+            bar.innerHTML = '';
+            bar.style.display = 'flex';
+
+            // BI-RADS Tag
+            const bTag = document.createElement('span');
+            bTag.className = 'tag-pill tag-birads';
+            bTag.innerHTML = `<i class="fa-solid fa-ribbon"></i> BI-RADS ${parsed.biradsNum}`;
+            bar.appendChild(bTag);
+
+            if (parsed.isNormal) {
+                const nTag = document.createElement('span');
+                nTag.className = 'tag-pill tag-normal';
+                nTag.innerHTML = `<i class="fa-solid fa-check"></i> ไม่พบความผิดปกติ (Normal)`;
+                bar.appendChild(nTag);
+            } else {
+                if (parsed.hasCalc) {
+                    const cTag = document.createElement('span');
+                    cTag.className = 'tag-pill tag-calc';
+                    cTag.innerHTML = `<i class="fa-solid fa-gem"></i> พบหินปูน (Calcification)`;
+                    bar.appendChild(cTag);
+                }
+                if (parsed.hasCyst) {
+                    const cyTag = document.createElement('span');
+                    cyTag.className = 'tag-pill tag-cyst';
+                    cyTag.innerHTML = `<i class="fa-solid fa-droplet"></i> พบถุงน้ำ (Cyst)`;
+                    bar.appendChild(cyTag);
+                }
+                if (parsed.hasMass) {
+                    const mTag = document.createElement('span');
+                    mTag.className = 'tag-pill tag-mass';
+                    mTag.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> พบก้อน (Mass/Nodule)`;
+                    bar.appendChild(mTag);
+                }
+            }
+        }
+
+        function copyResult() {
+            const text = document.getElementById('outputArea').innerText;
+            if (!text.trim()) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.classList.add('copied');
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> คัดลอกสำเร็จ!`;
+                showToast('คัดลอกข้อความสรุปผลลง Clipboard แล้ว');
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = `<i class="fa-solid fa-copy"></i> คัดลอกผลสรุป`;
+                }, 2000);
+            }).catch(err => {
+                showToast('ไม่สามารถคัดลอกได้ กรุณาเลือกข้อความแล้วกด Ctrl+C');
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

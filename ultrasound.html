@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมแปลผลอัลตราซาวด์ช่องท้อง | Abdominal Ultrasound Report Interpreter</title>
+    <meta name="description" content="ระบบสรุปรายงานผลตรวจอัลตราซาวด์ช่องท้องส่วนบนและส่วนล่าง สกัดเฉพาะความผิดปกติสูตินรีเวช ทางเดินอาหาร และทางเดินปัสสาวะ">
+    <!-- Google Fonts: Sarabun & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --primary-light: #ccfbf1;
+            --primary-gradient: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            --header-gradient: linear-gradient(135deg, #115e59 0%, #0f766e 50%, #0d9488 100%);
+            --bg: #f0fdfa;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #99f6e4;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 25px -5px rgba(13, 148, 136, 0.12);
+            --shadow-hover: 0 20px 35px -5px rgba(13, 148, 136, 0.22);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.06) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px 16px 60px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #334155;
+            font-size: 0.88rem;
+            font-weight: 600;
+            background: #ffffff;
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateX(-2px);
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ccfbf1;
+            color: #0f766e;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        h1 {
+            font-family: 'Sarabun', sans-serif;
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.02rem;
+            color: var(--text-muted);
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* Main Workspace Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1.5px solid #f0fdfa;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* Presets Bar */
+        .presets-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .presets-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+            color: #0f766e;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .preset-btn:hover {
+            background: #0d9488;
+            color: #ffffff;
+            border-color: #0d9488;
+            transform: translateY(-1px);
+        }
+
+        /* Textarea Input */
+        .textarea-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            border: 1.5px solid #cbd5e1;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #0f172a;
+            background: #f8fafc;
+            resize: vertical;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18);
+        }
+
+        /* Actions */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-parse {
+            flex-grow: 1;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.98rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+            transition: all 0.2s;
+        }
+
+        .btn-parse:hover {
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(13, 148, 136, 0.35);
+        }
+
+        .btn-clear {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            color: #475569;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-color: #94a3b8;
+        }
+
+        .btn-paste {
+            background: #ffffff;
+            color: #0f766e;
+            border: 1.5px solid #0d9488;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(13, 148, 136, 0.1);
+        }
+
+        .btn-paste:hover {
+            background: #f0fdfa;
+            border-color: #0f766e;
+            color: #115e59;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+        }
+
+        /* Output Box */
+        .output-box {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 18px;
+            min-height: 250px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            color: #0f172a;
+            position: relative;
+            user-select: text;
+        }
+
+        .empty-placeholder {
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .empty-placeholder i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            color: #cbd5e1;
+        }
+
+        .btn-copy {
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            padding: 7px 15px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        /* Tags Display */
+        .tags-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .tag-gyn { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; }
+        .tag-gi { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .tag-uro { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .tag-normal { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+        /* Rules Card */
+        .rules-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .rules-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rules-title i {
+            color: var(--primary);
+        }
+
+        .rules-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .rule-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .rule-item strong {
+            color: #0f172a;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Top Navigation -->
+        <div class="top-bar">
+            <a href="all.html" class="nav-link">
+                <i class="fa-solid fa-arrow-left"></i> กลับสู่หน้าศูนย์รวมระบบตรวจสุขภาพ
+            </a>
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">
+                <i class="fa-solid fa-user-doctor text-teal-600"></i> โดย นพ.เฉลิมรัฐ เมฆอุไรพร
+            </span>
+        </div>
+
+        <!-- Header -->
+        <header>
+            <div class="header-badge">
+                <i class="fa-solid fa-wave-square"></i> ระบบแปลผลอัลตราซาวด์ช่องท้องตาม Pattern มาตรฐาน
+            </div>
+            <h1>โปรแกรมสรุปผลตรวจ Abdominal Ultrasound</h1>
+            <p class="subtitle">ระบบวิเคราะห์รายงานผลตรวจอัลตราซาวด์ช่องท้อง สกัดเฉพาะความผิดปกติ <strong>สูตินรีเวช, ทางเดินอาหาร, ทางเดินปัสสาวะ</strong> พร้อมจับคู่คำแนะนำแพทย์เฉพาะทางอัตโนมัติ</p>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <div class="main-grid">
+
+            <!-- Left Panel: Raw Input -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>วางข้อความผลตรวจภาษาอังกฤษ</span>
+                    </div>
+                </div>
+
+                <!-- Presets -->
+                <div class="presets-label">
+                    <i class="fa-solid fa-flask"></i> ตัวอย่างรายงานผลตรวจสำหรับทดสอบ:
+                </div>
+                <div class="presets-container">
+                    <button class="preset-btn" onclick="loadSample(1)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 1: มดลูก + ตับ (Myoma + Fatty liver)
+                    </button>
+                    <button class="preset-btn" onclick="loadSample(2)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 2: ตับ + ถุงน้ำดี (Hemangioma + GB Polyp)
+                    </button>
+                    <button class="preset-btn" onclick="loadSample(3)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 3: ไต + ต่อมลูกหมาก (Renal cyst + BPH)
+                    </button>
+                    <button class="preset-btn" onclick="loadSample(4)">
+                        <i class="fa-solid fa-play"></i> ตัวอย่าง 4: ผลตรวจปกติ (Negative Finding)
+                    </button>
+                </div>
+
+                <div class="textarea-wrapper">
+                    <textarea id="rawInput" placeholder="วางข้อความผลตรวจ Ultrasound Whole / Upper / Lower Abdomen ภาษาอังกฤษที่นี่..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-paste" onclick="pasteFromClipboard()" title="วางข้อความที่คัดลอกไว้จากที่อื่นลงในช่องนี้ทันที">
+                        <i class="fa-solid fa-paste"></i> วางข้อความที่คัดลอกมา
+                    </button>
+                    <button class="btn-parse" onclick="processUltrasound()">
+                        <i class="fa-solid fa-bolt"></i> สรุปผลตรวจตาม Pattern ทันที
+                    </button>
+                    <button class="btn-clear" onclick="clearInput()" title="ล้างข้อความ">
+                        <i class="fa-solid fa-trash-can"></i> ล้าง
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Formatted Output -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>ข้อความผลสรุปตาม Pattern</span>
+                    </div>
+                    <button id="copyBtn" class="btn-copy" onclick="copyResult()" style="display: none;">
+                        <i class="fa-solid fa-copy"></i> คัดลอกข้อความ
+                    </button>
+                </div>
+
+                <!-- Tags Bar -->
+                <div id="tagsBar" class="tags-bar" style="display: none;"></div>
+
+                <!-- Formatted Text Area -->
+                <div id="outputArea" class="output-box">
+                    <div class="empty-placeholder">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <p style="font-weight: 600; color: #64748b; margin-bottom: 4px;">ยังไม่มีการประมวลผล</p>
+                        <p style="font-size: 0.82rem;">กรุณาวางผลตรวจทางด้านซ้าย หรือคลิกตัวอย่าง แล้วกดปุ่ม <strong>"สรุปผลตรวจตาม Pattern"</strong></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Rules & Logic Explanation Card -->
+        <div class="rules-card">
+            <div class="rules-title">
+                <i class="fa-solid fa-shield-halved"></i> กฎการคัดกรองและการจัดกลุ่มความผิดปกติ:
+            </div>
+            <div class="rules-list">
+                <div class="rule-item">
+                    <strong>1. สูตินรีเวช (Gynecology)</strong>
+                    ตรวจจับมดลูก (Myoma, ก้อนเนื้อ, ถุงน้ำ) และรังไข่/ปีกมดลูก (Ovarian cyst, Endometrioma, Dermoid) พร้อมคำแนะนำ: <em>แนะนำตรวจติดตามกับแพทย์สูตินรีเวช</em>
+                </div>
+                <div class="rule-item">
+                    <strong>2. ทางเดินอาหาร (GI &amp; Hepatobiliary)</strong>
+                    ตรวจจับตับ (ไขมันเกาะตับ, จุดสีผิดปกติ, Hemangioma, ถุงน้ำ) และถุงน้ำดี (ติ่งเนื้อ, นิ่ว, ผนังหนาตัว) พร้อมคำแนะนำ: <em>แนะนำตรวจติดตามกับแพทย์อายุรกรรมทางเดินอาหาร</em>
+                </div>
+                <div class="rule-item">
+                    <strong>3. ทางเดินปัสสาวะ (Urology)</strong>
+                    ตรวจจับไต (ถุงน้ำ, นิ่ว, จุดสีผิดปกติ, กรวยไตบวมน้ำ) และต่อมลูกหมากโต (Prostatomegaly/BPH) พร้อมคำแนะนำ: <em>แนะนำตรวจติดตามพบแพทย์ทางเดินปัสสาวะ</em>
+                </div>
+                <div class="rule-item">
+                    <strong>4. กรองผลปกติอย่างเข้มงวด</strong>
+                    ข้อความปฏิเสธเช่น <em>No focal hepatic lesion, Normal, No polyp or stone, Not detectable</em> จะถูกกรองออก ไม่นำมารายงานเป็นความผิดปกติ
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">คัดลอกผลสรุปเรียบร้อยแล้ว!</span>
+    </div>
+
+    <script>
+        const samples = {
+            1: `US WHOLE ABDOMEN
+HISTORY: Check up
+FINDINGS:
+LIVER: Mild fatty liver. No focal hepatic lesion.
+GALLBLADDER: Normal, no polyp or stone.
+PANCREAS: Unremarkable of partially seen pancreas.
+SPLEEN: No splenomegaly
+KIDNEYS: Normal size and parenchymal echoes.
+AORTA: Normal caliber
+URINARY BLADDER: Normal distended, no mass or wall thickening.
+UTERUS: Normal size uterus about 4.3x8.5 cm.
+- An intramural myoma at posterior wall, size 0.6 cm.
+ENDOMETRIUM: Normal thickness about 1.0 cm
+RIGHT OVARY: Normal size about 1.7x2.1 cm.
+LEFT OVARY: Normal size about 1.5x1.7 cm.
+ASCITIES: None.
+IMPRESSION:
+- Mild fatty liver.
+- A 0.6 cm intramural myoma at posterior wall.
+YINDEE GEERATIKUN, M.D. Radiologist`,
+
+            2: `US UPPER ABDOMEN
+FINDINGS:
+LIVER: Moderate fatty liver. A 1.2 cm hyperechoic nodule at right hepatic lobe, likely hemangioma.
+GALLBLADDER: Single 0.4 cm gallbladder polyp. No gallstone.
+PANCREAS: Normal
+SPLEEN: Normal
+KIDNEYS: Normal
+IMPRESSION:
+- Moderate fatty liver.
+- A 1.2 cm hyperechoic nodule at right hepatic lobe, likely hemangioma.
+- Single 0.4 cm gallbladder polyp.`,
+
+            3: `ULTRASOUND WHOLE ABDOMEN
+FINDINGS:
+LIVER: Normal size and parenchymal echo. No mass or cyst.
+GALLBLADDER: Normal, no stone or polyp.
+KIDNEYS: A 1.5 cm simple cortical cyst at left upper pole. No hydronephrosis or renal stone.
+PROSTATE: Enlarged prostate gland, estimated volume about 35 ml (prostatomegaly).
+URINARY BLADDER: Normal
+IMPRESSION:
+- A 1.5 cm simple cortical cyst at left kidney.
+- Prostatomegaly.`,
+
+            4: `US WHOLE ABDOMEN
+FINDINGS:
+Liver: Normal size and echogenicity. No focal lesion.
+Gallbladder: Normal, no calculus or polyp.
+Spleen, Pancreas: Unremarkable.
+Kidneys: Normal bilateral kidneys.
+Uterus and both ovaries: Normal size and shape.
+No ascites.
+IMPRESSION: Normal whole abdominal ultrasound examination.`
+        };
+
+        function loadSample(num) {
+            document.getElementById('rawInput').value = samples[num] || '';
+            processUltrasound();
+        }
+
+        function clearInput() {
+            document.getElementById('rawInput').value = '';
+            document.getElementById('outputArea').innerHTML = `
+                <div class="empty-placeholder">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <p style="font-weight: 600; color: #64748b; margin-bottom: 4px;">ยังไม่มีการประมวลผล</p>
+                    <p style="font-size: 0.82rem;">กรุณาวางผลตรวจทางด้านซ้าย หรือคลิกตัวอย่าง แล้วกดปุ่ม <strong>"สรุปผลตรวจตาม Pattern"</strong></p>
+                </div>
+            `;
+            document.getElementById('copyBtn').style.display = 'none';
+            document.getElementById('tagsBar').style.display = 'none';
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                if (!navigator.clipboard || !navigator.clipboard.readText) {
+                    alert('เบราว์เซอร์ไม่รองรับการอ่านคลิปบอร์ดอัตโนมัติ กรุณากดคลิกในช่องแล้วกด Ctrl + V เพื่อวางข้อความครับ');
+                    document.getElementById('rawInput').focus();
+                    return;
+                }
+                const text = await navigator.clipboard.readText();
+                if (!text || !text.trim()) {
+                    showToast('คลิปบอร์ดว่างเปล่า กรุณาคัดลอก (Copy) ผลตรวจจากแหล่งอื่นมาก่อนครับ');
+                    return;
+                }
+                document.getElementById('rawInput').value = text;
+                showToast('วางข้อความและสรุปผลตรวจเรียบร้อยแล้ว!');
+                processUltrasound();
+            } catch (err) {
+                console.warn('Clipboard read error:', err);
+                document.getElementById('rawInput').focus();
+                showToast('เบราว์เซอร์ไม่อนุญาตให้อ่านคลิปบอร์ดอัตโนมัติ กรุณากด Ctrl+V เพื่อวางครับ');
+            }
+        }
+
+        function processUltrasound() {
+            const text = document.getElementById('rawInput').value.trim();
+            if (!text) {
+                alert('กรุณากรอกหรือวางข้อความผลตรวจอัลตราซาวด์ภาษาอังกฤษก่อนครับ');
+                return;
+            }
+
+            const parsed = parseUltrasoundText(text);
+
+            // Render Output Text
+            document.getElementById('outputArea').innerText = parsed.outputText;
+            document.getElementById('copyBtn').style.display = 'inline-flex';
+
+            // Render Tags
+            renderTags(parsed);
+        }
+
+        function parseUltrasoundText(rawText) {
+            const text = rawText.trim();
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+            // Title
+            let title = 'ผลการตรวจอัลตร้าซาวด์ช่องท้องส่วนบนและส่วนล่าง';
+            if (/upper\s*abdomen/i.test(text) && !/lower/i.test(text)) {
+                title = 'ผลการตรวจอัลตร้าซาวด์ช่องท้องส่วนบน';
+            } else if (/lower\s*abdomen/i.test(text) && !/upper/i.test(text)) {
+                title = 'ผลการตรวจอัลตร้าซาวด์ช่องท้องส่วนล่าง';
+            }
+
+            // Extract Impression lines
+            let impressionLines = [];
+            let isImpression = false;
+            let nonImpressionLines = [];
+
+            for (let line of lines) {
+                if (/^(impression|conclusion|comment)\s*[:\-]?/i.test(line)) {
+                    isImpression = true;
+                    let after = line.replace(/^(impression|conclusion|comment)\s*[:\-]?\s*/i, '').trim();
+                    if (after && !/normal\b/i.test(after)) impressionLines.push(after);
+                    continue;
+                }
+                if (isImpression) {
+                    if (/(M\.D\.|Radiologist|Doctor|MD|signature)/i.test(line)) continue;
+                    let cleaned = line.replace(/^[-*•\d.]+\s*/, '').trim();
+                    if (cleaned && !/^normal\b/i.test(cleaned)) impressionLines.push(cleaned);
+                } else {
+                    nonImpressionLines.push(line);
+                }
+            }
+
+            // Helper to test if a sentence is negated
+            function isNegated(s, keywordPattern) {
+                let str = s.toLowerCase();
+                if (/(no|without|free of|negative for)\s+(evidence of\s+)?(focal\s+|suspicious\s+|dominant\s+|solid\s+|cystic\s+)?([a-z\s,]+)?(polyp|stone|calculus|calculi|mass|nodule|cyst|lesion|hydronephrosis|wall thickening|splenomegaly)/i.test(str)) {
+                    let match = str.match(/(no|without|free of|negative for)\s+([^.]+)/i);
+                    if (match && keywordPattern.test(match[0])) return true;
+                }
+                if (/(not\s+detectable|non-?detectable|undetectable|not\s+seen|not\s+identified|none|nil)\b/i.test(str)) {
+                    if (keywordPattern.test(str)) return true;
+                }
+                if (/normal,\s*no\s+/i.test(str) && keywordPattern.test(str)) return true;
+                if (/^normal\s+(size|caliber|thickness|distended|parenchymal)/i.test(str) && !/(myoma|cyst|mass|stone|polyp|steatosis|fatty|dilat)/i.test(str)) {
+                    return true;
+                }
+                return false;
+            }
+
+            // Find positive candidate sentences
+            function findPositiveItems(organPattern, keywordPattern) {
+                let found = [];
+
+                // 1. Check impression lines with organ affinity
+                for (let imp of impressionLines) {
+                    let isLiver = /(liver|hepatic|steatosis|fatty\s*liver)/i.test(imp);
+                    let isGb = /(gallbladder|\bgb\b|biliary|chole)/i.test(imp);
+                    let isKidney = /(kidney|renal|cortical\s*cyst|nephro)/i.test(imp);
+                    let isProstate = /(prostat)/i.test(imp);
+                    let isUterus = /(uterus|uterine|myoma|leiomyoma|fibroid|adenomyos|endometr)/i.test(imp);
+                    let isOvary = /(ovary|ovarian|adnex|chocolate\s*cyst|dermoid|teratoma)/i.test(imp);
+
+                    let matchesOrgan = false;
+                    if (organPattern.test('liver') && isLiver && !isGb && !isKidney) matchesOrgan = true;
+                    else if (organPattern.test('gallbladder') && isGb) matchesOrgan = true;
+                    else if (organPattern.test('kidney') && isKidney) matchesOrgan = true;
+                    else if (organPattern.test('prostate') && isProstate) matchesOrgan = true;
+                    else if (organPattern.test('uterus') && isUterus && !isOvary) matchesOrgan = true;
+                    else if (organPattern.test('ovary') && isOvary && !isUterus) matchesOrgan = true;
+
+                    if (matchesOrgan && keywordPattern.test(imp) && !isNegated(imp, keywordPattern)) {
+                        found.push(imp);
+                    }
+                }
+                if (found.length > 0) return found;
+
+                // 2. Check body lines matching organ
+                let inTargetOrgan = false;
+                for (let line of nonImpressionLines) {
+                    if (/^[A-Z\s_]+:\s*/.test(line)) {
+                        let header = line.match(/^([A-Z\s_]+):/)[1];
+                        inTargetOrgan = organPattern.test(header);
+                    }
+                    if (inTargetOrgan || organPattern.test(line)) {
+                        let sents = line.replace(/^[A-Z\s_]+:\s*/, '').split(/(?<=[.;])\s+/);
+                        for (let s of sents) {
+                            s = s.trim();
+                            if (keywordPattern.test(s) && !isNegated(s, keywordPattern)) {
+                                found.push(s);
+                            }
+                        }
+                    }
+                }
+                return found;
+            }
+
+            // ========================================================
+            // 1. สูตินรีเวช (Gynecology): มดลูก / รังไข่ / ปีกมดลูก / ปากมดลูก
+            // ========================================================
+            let gynFindings = [];
+
+            // Uterus: Myoma / Mass
+            let myomaHits = findPositiveItems(/uter(us|ine)|myometr|endometr/i, /myoma|leiomyoma|fibroid|adenomyosis/i);
+            let uterineMassHits = findPositiveItems(/uter(us|ine)/i, /\bmass\b|\bnodule\b/i);
+            let uterineCystHits = findPositiveItems(/uter(us|ine)/i, /\bcyst\b/i);
+
+            if (myomaHits.length > 0 || uterineMassHits.length > 0) {
+                let q = myomaHits[0] || uterineMassHits[0];
+                let qStr = q ? ` (${q}${q.endsWith('.') ? ' ' : '. '})` : ' ';
+                gynFindings.push(`--จุดผิดปกติที่มดลูกสงสัย ก้อนเนื้อที่มดลูก${qStr}แนะนำตรวจติดตามกับแพทย์สูตินรีเวช`);
+            } else if (uterineCystHits.length > 0) {
+                let q = uterineCystHits[0];
+                let qStr = q ? ` (${q}${q.endsWith('.') ? ' ' : '. '})` : ' ';
+                gynFindings.push(`--จุดผิดปกติที่มดลูกสงสัย ถุงน้ำที่มดลูก${qStr}แนะนำตรวจติดตามกับแพทย์สูตินรีเวช`);
+            }
+
+            // Ovary / Adnexa
+            let ovaryCystHits = findPositiveItems(/ovary|ovarian|adnex/i, /cyst|endometrioma|chocolate|dermoid|teratoma/i);
+            let ovaryMassHits = findPositiveItems(/ovary|ovarian|adnex/i, /\bmass\b|\bnodule\b|solid\s+lesion/i);
+
+            if (ovaryCystHits.length > 0) {
+                let q = ovaryCystHits[0];
+                let qStr = q ? ` (${q}${q.endsWith('.') ? ' ' : '. '})` : ' ';
+                gynFindings.push(`--จุดผิดปกติที่รังไข่ สงสัย ถุงน้ำที่รังไข่${qStr}แนะนำตรวจติดตามกับแพทย์สูตินรีเวช`);
+            } else if (ovaryMassHits.length > 0) {
+                let q = ovaryMassHits[0];
+                let qStr = q ? ` (${q}${q.endsWith('.') ? ' ' : '. '})` : ' ';
+                gynFindings.push(`--จุดผิดปกติที่รังไข่ สงสัย ก้อนเนื้อที่รังไข่${qStr}แนะนำตรวจติดตามกับแพทย์สูตินรีเวช`);
+            }
+
+            // ========================================================
+            // 2. ทางเดินอาหาร (GI & Hepatobiliary): ตับ และ ถุงน้ำดี
+            // ========================================================
+            let liverFattyHits = findPositiveItems(/liver|hepatic/i, /fatty\s*liver|steatosis/i);
+            let liverCystHits = findPositiveItems(/liver|hepatic/i, /\bcyst\b/i);
+            let liverLesionHits = findPositiveItems(/liver|hepatic/i, /hemangioma|hyperechoic|hypoechoic|focal\s+hepatic|\bliver\s+mass\b|\bhepatic\s+nodule\b/i);
+
+            let liverSuspects = [];
+            let liverQuotes = [];
+            if (liverFattyHits.length > 0) {
+                liverSuspects.push('ไขมันเกาะตับ');
+                liverQuotes.push(liverFattyHits[0]);
+            }
+            if (liverLesionHits.length > 0) {
+                liverSuspects.push('จุดสีผิดปกติที่ตับ');
+                liverQuotes.push(liverLesionHits[0]);
+            }
+            if (liverCystHits.length > 0) {
+                liverSuspects.push('ถุงน้ำที่ตับ');
+                liverQuotes.push(liverCystHits[0]);
+            }
+
+            // Gallbladder
+            let gbPolypHits = findPositiveItems(/gallbladder|gb\b/i, /polyp/i);
+            let gbStoneHits = findPositiveItems(/gallbladder|gb\b/i, /\bstone\b|gallstone|calculus|cholelithiasis|sludge/i);
+            let gbWallHits = findPositiveItems(/gallbladder|gb\b/i, /thickened\s*wall|wall\s*thickening|cholecystitis/i);
+
+            let gbSuspects = [];
+            let gbQuotes = [];
+            if (gbPolypHits.length > 0) {
+                gbSuspects.push('ติ่งเนื้อที่ถุงน้ำดี');
+                gbQuotes.push(gbPolypHits[0]);
+            }
+            if (gbStoneHits.length > 0) {
+                gbSuspects.push('นิ่วในถุงน้ำดี');
+                gbQuotes.push(gbStoneHits[0]);
+            }
+            if (gbWallHits.length > 0) {
+                gbSuspects.push('ผนังถุงน้ำดีหนาตัว');
+                gbQuotes.push(gbWallHits[0]);
+            }
+
+            let giFindings = [];
+            let allGiQuotes = [...liverQuotes, ...gbQuotes];
+            let giQuoteStr = allGiQuotes.length > 0 ? ` (${allGiQuotes.join('; ')})` : '';
+
+            if (liverSuspects.length > 0 && gbSuspects.length > 0) {
+                giFindings.push(`--จุดผิดปกติที่ ตับ สงสัย${liverSuspects.join(' และ ')} และถุงน้ำดี สงสัย ${gbSuspects.join(' และ ')}${giQuoteStr} แนะนำตรวจติดตามกับแพทย์อายุรกรรมทางเดินอาหาร`);
+            } else if (liverSuspects.length > 0) {
+                giFindings.push(`--จุดผิดปกติที่ตับ สงสัย${liverSuspects.join(' และ ')}${giQuoteStr} แนะนำตรวจติดตามกับแพทย์อายุรกรรมทางเดินอาหาร`);
+            } else if (gbSuspects.length > 0) {
+                giFindings.push(`--จุดผิดปกติที่ถุงน้ำดี สงสัย ${gbSuspects.join(' และ ')}${giQuoteStr} แนะนำตรวจติดตามกับแพทย์อายุรกรรมทางเดินอาหาร`);
+            }
+
+            // ========================================================
+            // 3. ทางเดินปัสสาวะ (Urology): ไต และ ต่อมลูกหมาก
+            // ========================================================
+            let kidneyCystHits = findPositiveItems(/kidney|renal/i, /\bcyst\b|cortical\s*cyst/i);
+            let kidneyStoneHits = findPositiveItems(/kidney|renal/i, /\bstone\b|calculus|calculi|nephrolithiasis/i);
+            let kidneyLesionHits = findPositiveItems(/kidney|renal/i, /angiomyolipoma|aml|echogenic\s*lesion|renal\s*mass|renal\s*nodule/i);
+            let kidneyHydroHits = findPositiveItems(/kidney|renal/i, /hydronephrosis/i);
+
+            let kidneySuspects = [];
+            let kidneyQuotes = [];
+            if (kidneyCystHits.length > 0) {
+                kidneySuspects.push('ถุงน้ำที่ไต');
+                kidneyQuotes.push(kidneyCystHits[0]);
+            }
+            if (kidneyStoneHits.length > 0) {
+                kidneySuspects.push('นิ่วที่ไต');
+                kidneyQuotes.push(kidneyStoneHits[0]);
+            }
+            if (kidneyLesionHits.length > 0) {
+                kidneySuspects.push('จุดสีผิดปกติที่ไต');
+                kidneyQuotes.push(kidneyLesionHits[0]);
+            }
+            if (kidneyHydroHits.length > 0) {
+                kidneySuspects.push('กรวยไตบวมน้ำ');
+                kidneyQuotes.push(kidneyHydroHits[0]);
+            }
+
+            // Prostate
+            let prostateHits = findPositiveItems(/prostate/i, /prostatomegaly|enlarged\s*prostate|\bbph\b|hyperplasia/i);
+            let prostateSuspects = [];
+            let prostateQuotes = [];
+            if (prostateHits.length > 0) {
+                prostateSuspects.push('ต่อมลูกหมากโต');
+                prostateQuotes.push(prostateHits[0]);
+            }
+
+            let uroFindings = [];
+            let allUroQuotes = [...kidneyQuotes, ...prostateQuotes];
+            let uroQuoteStr = allUroQuotes.length > 0 ? ` (${allUroQuotes.join('; ')})` : '';
+
+            if (kidneySuspects.length > 0 && prostateSuspects.length > 0) {
+                uroFindings.push(`--จุดผิดปกติที่ไต สงสัย ${kidneySuspects.join(' และ ')} และสงสัยต่อมลูกหมากโต${uroQuoteStr} แนะนำตรวจติดตามพบแพทย์ทางเดินปัสสาวะ`);
+            } else if (kidneySuspects.length > 0) {
+                uroFindings.push(`--จุดผิดปกติที่ไต สงสัย ${kidneySuspects.join(' และ ')}${uroQuoteStr} แนะนำตรวจติดตามพบแพทย์ทางเดินปัสสาวะ`);
+            } else if (prostateSuspects.length > 0) {
+                uroFindings.push(`--จุดผิดปกติที่ต่อมลูกหมาก สงสัยต่อมลูกหมากโต${uroQuoteStr} แนะนำตรวจติดตามพบแพทย์ทางเดินปัสสาวะ`);
+            }
+
+            // Combine all
+            let allFindings = [...gynFindings, ...giFindings, ...uroFindings];
+
+            let out = `${title}\n\n`;
+            if (allFindings.length > 0) {
+                out += allFindings.join('\n\n');
+            } else {
+                out += `--ไม่พบความผิดปกติ แนะนำตรวจคัดกรองตามระยะประจำปี\n\nNo abnormal findings detected. Routine annual health screening is recommended.`;
+            }
+
+            return {
+                outputText: out,
+                findingsCount: allFindings.length,
+                hasGyn: gynFindings.length > 0,
+                hasGi: giFindings.length > 0,
+                hasUro: uroFindings.length > 0
+            };
+        }
+
+        function renderTags(parsed) {
+            const bar = document.getElementById('tagsBar');
+            bar.innerHTML = '';
+            bar.style.display = 'flex';
+
+            if (parsed.findingsCount === 0) {
+                const nTag = document.createElement('span');
+                nTag.className = 'tag-pill tag-normal';
+                nTag.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> ไม่พบความผิดปกติ (Normal)`;
+                bar.appendChild(nTag);
+            } else {
+                if (parsed.hasGyn) {
+                    const gTag = document.createElement('span');
+                    gTag.className = 'tag-pill tag-gyn';
+                    gTag.innerHTML = `<i class="fa-solid fa-venus"></i> สูตินรีเวช (มดลูก/รังไข่)`;
+                    bar.appendChild(gTag);
+                }
+                if (parsed.hasGi) {
+                    const giTag = document.createElement('span');
+                    giTag.className = 'tag-pill tag-gi';
+                    giTag.innerHTML = `<i class="fa-solid fa-utensils"></i> ทางเดินอาหาร (ตับ/ถุงน้ำดี)`;
+                    bar.appendChild(giTag);
+                }
+                if (parsed.hasUro) {
+                    const uTag = document.createElement('span');
+                    uTag.className = 'tag-pill tag-uro';
+                    uTag.innerHTML = `<i class="fa-solid fa-droplet"></i> ทางเดินปัสสาวะ (ไต/ต่อมลูกหมาก)`;
+                    bar.appendChild(uTag);
+                }
+            }
+        }
+
+        function copyResult() {
+            const text = document.getElementById('outputArea').innerText;
+            if (!text) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('คัดลอกผลสรุปเรียบร้อยแล้ว!');
+            }).catch(err => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('คัดลอกผลสรุปเรียบร้อยแล้ว!');
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => {
+                t.classList.remove('show');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
